@@ -64,7 +64,7 @@ export const CardList = (prop) => {
 
   return (
     <article>
-      <section className="mb-4 flex justify-around">
+      <section className="mb-4">
         <button onClick={handleClickPrev}>Prev</button>
         <button onClick={handleClickNext}>Next</button>
       </section>

@@ -7,10 +7,10 @@ function App() {
   return (
     <>
       <article className="grid grid-cols-2 gap-4">
-        <section className="float-left">
+        <section className="">
           <CardList type="users" />
         </section>
-        <section className="float-right">
+        <section className="">
           <CardList type="products" />
         </section>
       </article>

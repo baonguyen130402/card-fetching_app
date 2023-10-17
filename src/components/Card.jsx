@@ -1,5 +1,5 @@
-export const UserCard = (props) => {
-  const { fullName, avatar } = props;
+export const Card = (props) => {
+  const { name, image } = props;
   return (
     <>
       <a
@@ -8,10 +8,10 @@ export const UserCard = (props) => {
       >
         <img
           className="w-32 mb-2 bg-transparent rounded-lg align-center mx-auto"
-          src={avatar}
+          src={image}
         />
         <p className="font-normal text-gray-700 dark:text-gray-400">
-          {fullName}
+          {name}
         </p>
       </a>
     </>

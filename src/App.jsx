@@ -1,14 +1,19 @@
 import { useState } from "react";
 import "./App.css";
 
-import { ListUserCards } from "./components/ListUserCards";
+import { CardList } from "./components/CardList";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <>
-      <ListUserCards />
+      <article className="grid grid-cols-2 gap-4">
+        <section className="float-left">
+          <CardList type="users" />
+        </section>
+        <section className="float-right">
+          <CardList type="products" />
+        </section>
+      </article>
     </>
   );
 }

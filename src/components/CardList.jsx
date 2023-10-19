@@ -5,6 +5,7 @@ import { Card } from "./Card";
 export const CardList = (prop) => {
   const { type } = prop;
   const [data, setData] = useState([]);
+  const [userId, setUserId] = useState();
   const cardRendered = useRef(0);
   const inputValue = useRef("");
 
@@ -18,16 +19,18 @@ export const CardList = (prop) => {
       rawData = dataGetFromEndpoint.data.users;
       rawData.forEach((user) => {
         dataRender.push({
+          id: user.id,
           name: `${user.firstName} ${user.lastName}`,
-          image: `${user.image}`,
+          image: user.image,
         });
       });
     } else if (type === "products") {
       rawData = dataGetFromEndpoint.data.products;
       rawData.forEach((product) => {
         dataRender.push({
+          id: product.id,
           name: `${product.title}`,
-          image: `${product.images[0]}`,
+          image: product.images[0],
         });
       });
     }
@@ -59,42 +62,11 @@ export const CardList = (prop) => {
     }
   };
 
-  const fetchDataMatch = async (endpoint) => {
-    const dataGetFromEndpoint = await axios.get(endpoint);
-    const dataRender = [];
-
-    let rawData;
-
-    if (type === "users") {
-      rawData = dataGetFromEndpoint.data.users;
-      rawData.forEach((user) => {
-        dataRender.push({
-          name: `${user.firstName} ${user.lastName}`,
-          image: `${user.image}`,
-        });
-      });
-    } else if (type === "products") {
-      rawData = dataGetFromEndpoint.data.products;
-      rawData.forEach((product) => {
-        dataRender.push({
-          name: `${product.title}`,
-          image: `${product.images[0]}`,
-        });
-      });
-    }
-
-    if (inputValue.current.length === 0) {
-      fetchData(
-        `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
-      );
-    } else {
-      setData(dataRender);
-    }
-  };
-
   useEffect(() => {
     fetchData(`https://dummyjson.com/${type}?limit=20`);
   }, []);
+
+  console.log(userId);
 
   return (
     <article>
@@ -108,17 +80,28 @@ export const CardList = (prop) => {
             className="px-4 py-2 border-none outline-none rounded-lg focus:bg-gray-700"
             placeholder="Input name"
             onChange={(event) => {
-              inputValue.current = event.target.value;
-              fetchDataMatch(
-                `https://dummyjson.com/${type}/search?q=${inputValue.current}`,
-              );
+              let searchString = event.target.value;
+
+              if (searchString.length !== 0) {
+                fetchData(
+                  `https://dummyjson.com/${type}/search?q=${searchString}`,
+                );
+              } else {
+                fetchData(
+                  `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
+                );
+              }
             }}
           />
         </div>
       </section>
-      <section className="container mx-auto columns-5">
-        {data.map((user, idx) => (
-          <Card key={idx} name={user.name} image={user.image} />
+      <section className="grid grid-cols-4 gap-2">
+        {data.map((object) => (
+          <Card
+            key={object.id}
+            name={object.name}
+            image={object.image}
+          />
         ))}
       </section>
     </article>

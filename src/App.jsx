@@ -7,15 +7,13 @@ import { cartData } from "./data/CartData";
 
 function App() {
   return (
-    <>
-      <main className="grid grid-cols-2 gap-4">
-        <CardList type="users" />
-        <article className="grid grid-cols-1">
-          <CardList type="products" />
-          <Cart data={cartData} />
-        </article>
-      </main>
-    </>
+    <main className="grid grid-cols-2 gap-4">
+      <CardList type="users" />
+      <div className="grid grid-cols-1">
+        <CardList type="products" />
+        <Cart data={cartData} />
+      </div>
+    </main>
   );
 }
 

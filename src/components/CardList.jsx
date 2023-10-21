@@ -1,13 +1,14 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
+import { cartData, getData } from "../data/CartData";
 
 export const CardList = (prop) => {
   const { type } = prop;
   const [data, setData] = useState([]);
-  const [userId, setUserId] = useState();
+  const [clickState, setClickState] = useState(false);
+  let temp = [];
   const cardRendered = useRef(0);
-  const inputValue = useRef("");
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
@@ -66,8 +67,6 @@ export const CardList = (prop) => {
     fetchData(`https://dummyjson.com/${type}?limit=20`);
   }, []);
 
-  console.log(userId);
-
   return (
     <article>
       <section className="mb-4">
@@ -98,6 +97,9 @@ export const CardList = (prop) => {
       <section className="grid grid-cols-4 gap-2">
         {data.map((object) => (
           <Card
+            onClick={() => {
+              getData(object.id);
+            }}
             key={object.id}
             name={object.name}
             image={object.image}

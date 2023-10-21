@@ -2,18 +2,19 @@ import { useState } from "react";
 import "./App.css";
 
 import { CardList } from "./components/CardList";
+import { Cart } from "./components/Cart";
+import { cartData } from "./data/CartData";
 
 function App() {
   return (
     <>
-      <article className="grid grid-cols-2 gap-4">
-        <section className="">
-          <CardList type="users" />
-        </section>
-        <section className="">
+      <main className="grid grid-cols-2 gap-4">
+        <CardList type="users" />
+        <article className="grid grid-cols-1">
           <CardList type="products" />
-        </section>
-      </article>
+          <Cart data={cartData} />
+        </article>
+      </main>
     </>
   );
 }

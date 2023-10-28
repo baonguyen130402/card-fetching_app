@@ -1,20 +1,29 @@
-import { useState } from "react";
+import { createContext, useState } from "react";
 import "./App.css";
 
 import { CardList } from "./components/CardList";
 import { Cart } from "./components/Cart";
-import { cartData } from "./data/CartData";
 
-function App() {
+export const UserIdContext = createContext();
+export const ProductContext = createContext();
+
+const App = () => {
+  const [userId, setUserId] = useState();
+  const [productName, setProductName] = useState();
+
   return (
     <main className="grid grid-cols-2 gap-4">
-      <CardList type="users" />
-      <div className="grid grid-cols-1">
-        <CardList type="products" />
-        <Cart data={cartData} />
-      </div>
+      <UserIdContext.Provider value={{ userId, setUserId }}>
+        <CardList type="users" />
+        <div className="flex flex-col items-center">
+          <ProductContext.Provider value={{ productName, setProductName }}>
+            <CardList type="products" />
+            <Cart />
+          </ProductContext.Provider>
+        </div>
+      </UserIdContext.Provider>
     </main>
   );
-}
+};
 
 export default App;

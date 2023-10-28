@@ -1,14 +1,13 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
-import { cartData, getData } from "../data/CartData";
+import { UserIdContext } from "../App";
 
 export const CardList = (prop) => {
   const { type } = prop;
   const [data, setData] = useState([]);
-  const [clickState, setClickState] = useState(false);
-  let temp = [];
   const cardRendered = useRef(0);
+  const { userId, setUserId } = useContext(UserIdContext);
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
@@ -64,11 +63,15 @@ export const CardList = (prop) => {
   };
 
   useEffect(() => {
-    fetchData(`https://dummyjson.com/${type}?limit=20`);
+    try {
+      fetchData(`https://dummyjson.com/${type}?limit=20`);
+    } catch (err) {
+      console.log(err);
+    }
   }, []);
 
   return (
-    <article>
+    <article className="mb-4">
       <section className="mb-4">
         <button onClick={handleClickPrev}>Prev</button>
         <button onClick={handleClickNext}>Next</button>
@@ -98,7 +101,7 @@ export const CardList = (prop) => {
         {data.map((object) => (
           <Card
             onClick={() => {
-              getData(object.id);
+              setUserId(object.id);
             }}
             key={object.id}
             name={object.name}

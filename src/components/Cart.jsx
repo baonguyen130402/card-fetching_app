@@ -14,7 +14,6 @@ export const Cart = () => {
       `https://dummyjson.com/carts/user/${userId}`,
     );
     const products = dataGetFromEndPoint.data.carts[0].products;
-    console.log(products);
     const dataRender = [];
 
     products.forEach((product) => {

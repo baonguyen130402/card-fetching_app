@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
-import { UserIdContext } from "../App";
+import { ProductContext, UserIdContext } from "../App";
 
 export const CardList = (prop) => {
+  const { productName, setProductName } = useContext(ProductContext);
   const { type } = prop;
   const [data, setData] = useState([]);
   const cardRendered = useRef(0);
@@ -69,6 +70,14 @@ export const CardList = (prop) => {
       console.log(err);
     }
   }, []);
+
+  useEffect(() => {
+    if (productName !== "" && type === "products") {
+      fetchData(
+        `https://dummyjson.com/${type}/search?q=${productName}`,
+      );
+    }
+  }, [productName]);
 
   return (
     <article className="mb-4">

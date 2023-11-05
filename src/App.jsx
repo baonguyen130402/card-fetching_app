@@ -16,7 +16,7 @@ const App = () => {
       <UserIdContext.Provider value={{ userId, setUserId }}>
         <ProductContext.Provider value={{ productName, setProductName }}>
           <CardList type="users" />
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center col-span-1 col-start-2">
             <CardList type="products" />
             <Cart />
           </div>

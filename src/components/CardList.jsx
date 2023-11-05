@@ -7,6 +7,7 @@ export const CardList = (prop) => {
   const { productName, setProductName } = useContext(ProductContext);
   const { type } = prop;
   const [data, setData] = useState([]);
+  const [focusState, setFocusState] = useState(false);
   const cardRendered = useRef(0);
   const { userId, setUserId } = useContext(UserIdContext);
 
@@ -106,11 +107,13 @@ export const CardList = (prop) => {
           />
         </div>
       </section>
-      <section className="grid grid-cols-4 gap-2">
+
+      <section className="grid grid-cols-4 gap-2 md:gap-y-0 h-screen overflow-y-auto">
         {data.map((object) => (
           <Card
             onClick={() => {
               setUserId(object.id);
+              setFocusState(true);
             }}
             key={object.id}
             name={object.name}

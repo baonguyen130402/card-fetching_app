@@ -11,8 +11,7 @@ export const Cart = () => {
 
   const getData = async (userId) => {
     const dataGetFromEndPoint = await axios.get(
-      `https://dummyjson.com/carts/user/${userId}`,
-    );
+      `https://dummyjson.com/carts/user/${userId}`,);
     const products = dataGetFromEndPoint.data.carts[0].products;
     const dataRender = [];
 

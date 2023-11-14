@@ -14,23 +14,19 @@ export const CardList = (prop) => {
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
-    const dataRender = [];
-
-    let rawData;
+    const d = [];
 
     if (type === "users") {
-      rawData = dataGetFromEndpoint.data.users;
-      rawData.forEach((user) => {
-        dataRender.push({
+      dataGetFromEndpoint.data.users.forEach((user) => {
+        d.push({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
           image: user.image,
         });
       });
     } else if (type === "products") {
-      rawData = dataGetFromEndpoint.data.products;
-      rawData.forEach((product) => {
-        dataRender.push({
+      dataGetFromEndpoint.data.products.forEach((product) => {
+        d.push({
           id: product.id,
           name: `${product.title}`,
           image: product.images[0],
@@ -38,7 +34,7 @@ export const CardList = (prop) => {
       });
     }
 
-    setData(dataRender);
+    setData(d);
   };
 
   useEffect(() => {

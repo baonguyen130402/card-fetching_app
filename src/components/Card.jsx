@@ -1,20 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useState, useContext } from "react";
+
+import {UserIdContext} from '../lib/contexts'
 
 export const Card = (props) => {
-  const { id, name, image, onClick } = props;
-
-  const focusedUser = {
-    "true": `${id}`,
-  };
+  const { id, name, image } = props;
+  const [shouldFocusThisCard, setShouldFocusThisCard] = useState(false)
+  const { userId, setUserId } = useContext(UserIdContext);
+  
+  useEffect(() => {
+    const shouldFocusUserId = localStorage.getItem('focus-user-id');
+    setShouldFocusThisCard(id === shouldFocusUserId)
+  }, []) // [userId]
 
   const handleClick = () => {
-    onClick();
-    localStorage.setItem("focus", JSON.stringify(focusedUser));
+    localStorage.setItem('focus-user-id', id);
+    setUserId(id)
   };
 
   return (
     <>
-      {true
+      {shouldFocusThisCard
         ? (
           <a
             onClick={handleClick}

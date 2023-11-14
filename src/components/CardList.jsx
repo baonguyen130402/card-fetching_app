@@ -110,15 +110,12 @@ export const CardList = (prop) => {
       </section>
 
       <section className="grid grid-cols-4 gap-2 md:gap-y-0 h-screen overflow-y-auto">
-        {data.map((object) => (
+        {data.map((item) => (
           <Card
-            onClick={() => {
-              setUserId(object.id);
-            }}
-            id={userId}
-            key={object.id}
-            name={object.name}
-            image={object.image}
+            id={item.id}
+            key={item.id}
+            name={item.name}
+            image={item.image}
           />
         ))}
       </section>

@@ -4,12 +4,13 @@ import { Card } from "./Card";
 import { ProductContext, UserIdContext } from "../App";
 
 export const CardList = (prop) => {
-  const { productName, setProductName } = useContext(ProductContext);
   const { type } = prop;
+  
+  const { productName, setProductName } = useContext(ProductContext);
+  const { userId, setUserId } = useContext(UserIdContext);
   const [data, setData] = useState([]);
   const focusState = useRef(false);
   const cardRendered = useRef(0);
-  const { userId, setUserId } = useContext(UserIdContext);
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
@@ -40,6 +41,22 @@ export const CardList = (prop) => {
     setData(dataRender);
   };
 
+  useEffect(() => {
+    try {
+      fetchData(`https://dummyjson.com/${type}?limit=20`);
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (productName !== "" && type === "products") {
+      fetchData(
+        `https://dummyjson.com/${type}/search?q=${productName}`,
+      );
+    }
+  }, [productName]);
+
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
       cardRendered.current -= 20;
@@ -63,22 +80,6 @@ export const CardList = (prop) => {
       alert("This is last page");
     }
   };
-
-  useEffect(() => {
-    try {
-      fetchData(`https://dummyjson.com/${type}?limit=20`);
-    } catch (err) {
-      console.log(err);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (productName !== "" && type === "products") {
-      fetchData(
-        `https://dummyjson.com/${type}/search?q=${productName}`,
-      );
-    }
-  }, [productName]);
 
   return (
     <article className="mb-4">

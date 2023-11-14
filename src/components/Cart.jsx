@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 
+// TODO: Update imports.
 import { UserIdContext } from "../App.jsx";
 import { ProductContext } from "../App.jsx";
 import axios from "axios";
@@ -49,6 +50,7 @@ export const Cart = () => {
             onClick={() => setProductName(product.title)}
           >
             {Object.values(product).map((el, idx) => (
+              // FIXME: Error in console.
               <th key={idx} className="border">
                 {el}
               </th>

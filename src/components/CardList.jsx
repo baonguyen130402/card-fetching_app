@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useId, useRef, useState } from "react";
 import { Card } from "./Card";
 import { ProductContext, UserIdContext } from "../App";
 
@@ -7,7 +7,7 @@ export const CardList = (prop) => {
   const { productName, setProductName } = useContext(ProductContext);
   const { type } = prop;
   const [data, setData] = useState([]);
-  const [focusState, setFocusState] = useState(false);
+  const focusState = useRef(false);
   const cardRendered = useRef(0);
   const { userId, setUserId } = useContext(UserIdContext);
 
@@ -113,8 +113,8 @@ export const CardList = (prop) => {
           <Card
             onClick={() => {
               setUserId(object.id);
-              setFocusState(true);
             }}
+            id={userId}
             key={object.id}
             name={object.name}
             image={object.image}

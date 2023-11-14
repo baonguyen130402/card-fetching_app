@@ -3,17 +3,16 @@ import "./App.css";
 
 import { CardList } from "./components/CardList";
 import { Cart } from "./components/Cart";
+import {UserIdObserver} from './lib/contexts'
 
-export const UserIdContext = createContext();
 export const ProductContext = createContext();
 
 const App = () => {
-  const [userId, setUserId] = useState();
   const [productName, setProductName] = useState("");
 
   return (
     <main className="grid grid-cols-2 gap-4">
-      <UserIdContext.Provider value={{ userId, setUserId }}>
+      <UserIdObserver>
         <ProductContext.Provider value={{ productName, setProductName }}>
           <CardList type="users" />
           <div className="flex flex-col items-center col-span-1 col-start-2">
@@ -21,7 +20,7 @@ const App = () => {
             <Cart />
           </div>
         </ProductContext.Provider>
-      </UserIdContext.Provider>
+      </UserIdObserver>
     </main>
   );
 };

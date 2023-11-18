@@ -1,19 +1,22 @@
 import { useContext, useEffect, useState } from "react";
 
+import UserIdContext from "../lib/contexts/user-id-context.tsx";
+import ProductNameContext from "../lib/contexts/ProductNameContext.tsx"
+
 // TODO: Update imports.
-import { UserIdContext } from "../App.jsx";
-import { ProductContext } from "../App.jsx";
+
 import axios from "axios";
 
 export const Cart = () => {
   const [data, setData] = useState([{}]);
   const { userId, setUserId } = useContext(UserIdContext);
-  const { productName, setProductName } = useContext(ProductContext);
+  const { productName, setProductName } = useContext(ProductNameContext);
   const cartTableKeys = Object.keys(data[0]);
 
   const getData = async (userId) => {
     const dataGetFromEndPoint = await axios.get(
-      `https://dummyjson.com/carts/user/${userId}`,);
+      `https://dummyjson.com/carts/user/${userId}`,
+    );
     const products = dataGetFromEndPoint.data.carts[0].products;
     const dataRender = [];
 

@@ -1,15 +1,13 @@
 import axios from "axios";
-import { useContext, useEffect, useId, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
-import { ProductContext, UserIdContext } from "../App";
+import ProductNameContext from "../lib/contexts/ProductNameContext.tsx";
 
 export const CardList = (prop) => {
   const { type } = prop;
-  
-  const { productName, setProductName } = useContext(ProductContext);
-  const { userId, setUserId } = useContext(UserIdContext);
-  const [data, setData] = useState([]);
-  const focusState = useRef(false);
+
+  const { productName, setProductName } = useContext(ProductNameContext);
+  const [data, setData] = useState();
   const cardRendered = useRef(0);
 
   const fetchData = async (endpoint) => {
@@ -88,15 +86,15 @@ export const CardList = (prop) => {
             name={type}
             className="px-4 py-2 border-none outline-none rounded-lg focus:bg-gray-700"
             placeholder="Input name"
-            onChange={(event) => {
+            onChange={async (event) => {
               let searchString = event.target.value;
 
               if (searchString.length !== 0) {
-                fetchData(
+                await fetchData(
                   `https://dummyjson.com/${type}/search?q=${searchString}`,
                 );
               } else {
-                fetchData(
+                await fetchData(
                   `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
                 );
               }

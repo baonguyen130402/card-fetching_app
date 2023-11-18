@@ -1,20 +1,21 @@
-import { useEffect, useState, useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
-import {UserIdContext} from '../lib/contexts'
+import UserIdContext from "../lib/contexts/user-id-context";
 
 export const Card = (props) => {
   const { id, name, image } = props;
-  const [shouldFocusThisCard, setShouldFocusThisCard] = useState(false)
+  const [shouldFocusThisCard, setShouldFocusThisCard] = useState(false);
   const { userId, setUserId } = useContext(UserIdContext);
-  
+
   useEffect(() => {
-    const shouldFocusUserId = localStorage.getItem('focus-user-id');
-    setShouldFocusThisCard(id === shouldFocusUserId)
-  }, []) // [userId]
+    const shouldFocusUserId = localStorage.getItem("focus-user-id");
+    setShouldFocusThisCard(id.toString() === shouldFocusUserId);
+  }, [userId]); // [userId]
 
   const handleClick = () => {
-    localStorage.setItem('focus-user-id', id);
-    setUserId(id)
+    localStorage.setItem("focus-user-id", id);
+    setUserId(id);
+    console.log(shouldFocusThisCard);
   };
 
   return (

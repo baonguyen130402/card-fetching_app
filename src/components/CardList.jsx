@@ -1,13 +1,13 @@
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Card } from "./Card";
-import ProductNameContext from "../lib/contexts/ProductNameContext.tsx";
+import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
 
 export const CardList = (prop) => {
   const { type } = prop;
 
   const { productName, setProductName } = useContext(ProductNameContext);
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const cardRendered = useRef(0);
 
   const fetchData = async (endpoint) => {

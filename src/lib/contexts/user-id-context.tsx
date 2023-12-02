@@ -13,7 +13,7 @@ export const UserIdContext = createContext<Props>({
 });
 
 export default function UserIdObserver({ children }) {
-  const [userId, setUser] = useState();
+  const [userId, setUser] = useState("");
 
   return (
     <UserIdContext.Provider

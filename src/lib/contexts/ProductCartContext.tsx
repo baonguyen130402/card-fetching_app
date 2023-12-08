@@ -3,12 +3,12 @@ import {} from "react";
 import { createContext, useState } from "react";
 
 interface Props {
-  productData: string;
+  productData: any[];
   setProductData: (value) => void;
 }
 
 export const ProductCartContext = createContext<Props>({
-  productData: "",
+  productData: [],
   setProductData: () => {},
 });
 

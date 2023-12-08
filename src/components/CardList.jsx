@@ -8,10 +8,12 @@ export const CardList = (prop) => {
 
   const { productName, setProductName } = useContext(ProductNameContext);
   const [data, setData] = useState([]);
-  const cardRendered = useRef(0);
+  const [dataCart, setDataCart] = useState({});
+  const cardRendered = useRef(1);
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
+
     const d = [];
 
     if (type === "users") {
@@ -35,21 +37,61 @@ export const CardList = (prop) => {
     setData(d);
   };
 
-  useEffect(() => {
-    try {
-      fetchData(`https://dummyjson.com/${type}?limit=20`);
-    } catch (err) {
-      console.log(err);
+  const fetchDataCart = async (cardRendered) => {
+    const d = {};
+
+    for (let i = cardRendered; i < cardRendered + 20; i++) {
+      const dataCartUser = await axios.get(
+        `https://dummyjson.com/carts/user/${i}`,
+      );
+
+      if (dataCartUser.data.carts.length !== 0) {
+        d[i] = dataCartUser.data.carts[0].products;
+      } else {
+        continue;
+      }
     }
+
+    setDataCart(d);
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetchData(`https://dummyjson.com/${type}?limit=20`);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
   }, []);
+
+  console.log(data.length)
 
   useEffect(() => {
     if (productName !== "" && type === "products") {
-      fetchData(
-        `https://dummyjson.com/${type}/search?q=${productName}`,
-      );
+      (async () => {
+        try {
+          await fetchData(
+            `https://dummyjson.com/${type}/search?q=${productName}`,
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      })();
     }
   }, [productName]);
+
+  useEffect(() => {
+    if (data.length !== 0) {
+      (async () => {
+        try {
+          await fetchDataCart(cardRendered.current);
+        } catch (err) {
+          console.log(err);
+        }
+      })();
+    }
+  }, [cardRendered.current, data.length]);
 
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
@@ -110,6 +152,7 @@ export const CardList = (prop) => {
             key={item.id}
             name={item.name}
             image={item.image}
+            dataCart={dataCart}
           />
         ))}
       </section>

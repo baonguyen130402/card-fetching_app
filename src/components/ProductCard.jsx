@@ -14,8 +14,8 @@ export const ProductCard = () => {
       <div className="bg-transparent rounded-lg flex flex-col justify-center items-center">
         {
           <Card
-            name={product.name}
-            image={product.img}
+            name={product.title}
+            image={product.thumbnail}
           />
         }
         <button onClick={() => navigate(-1)}>Back</button>

@@ -6,38 +6,49 @@ import { UserIdContext } from "../lib/contexts/user-id-context.tsx";
 import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
-// TODO: Update imports.
-
 import axios from "axios";
+import { ProductCard } from "./ProductCard.jsx";
+
+// TODO: Update imports.
 
 export const Cart = () => {
   const [data, setData] = useState([{}]);
   const { userId, setUserId } = useContext(UserIdContext);
   const { productName, setProductName } = useContext(ProductNameContext);
   const { productData, setProductData } = useContext(ProductCartContext);
-  const cartTableKeys = Object.keys(data[0]);
+  let cartTableKeys;
 
-  const getData = async (userId) => {
-    const dataGetFromEndPoint = await axios.get(
-      `https://dummyjson.com/carts/user/${userId}`,
-    );
-    const productCart = dataGetFromEndPoint.data.carts;
-    let products;
+  if (data.length !== 0) {
+    cartTableKeys = Object.keys(data[0]);
+  } else {
+    cartTableKeys = []
+  }
 
-    try {
-      if (productCart.length === 0) {
-        products = data;
-      } else {
-        products = productCart[0].products;
-      }
-    } catch (err) {
-      console.log(err);
+  const getData = () => {
+    // const dataGetFromEndPoint = await axios.get(
+    //   `https://dummyjson.com/carts/user/${userId}`,
+    // );
+    // const productCart = dataGetFromEndPoint.data.carts;
+    let products = [];
+
+    if (productData.length !== 0) {
+      products = productData;
     }
 
-    const dataRender = [];
+    // try {
+    //   if (productCart.length === 0) {
+    //     products = data;
+    //   } else {
+    //     products = productCart[0].products;
+    //   }
+    // } catch (err) {
+    //   console.log(err);
+    // }
+
+    const d = [];
 
     products.forEach((product) => {
-      dataRender.push({
+      d.push({
         id: product.id,
         title: product.title,
         price: product.price,
@@ -46,14 +57,12 @@ export const Cart = () => {
       });
     });
 
-    setData(dataRender);
+    setData(d);
   };
 
   useEffect(() => {
-    if (userId !== undefined) {
-      getData(userId);
-    }
-  }, [userId]);
+    getData();
+  }, [productData]);
 
   return (
     <div className="p-4">
@@ -75,7 +84,7 @@ export const Cart = () => {
           >
             <tr>
               {Object.values(product).map((el, idx) => (
-                // FIXME: Error in console.
+                // FIXME: Error in console. (Fixed)
                 <td
                   key={idx}
                   className="border"

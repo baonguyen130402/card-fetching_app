@@ -8,8 +8,10 @@ export const CardList = (prop) => {
 
   const { productName, setProductName } = useContext(ProductNameContext);
   const [data, setData] = useState([]);
+  const [count, setCount] = useState(20);
   const [dataCart, setDataCart] = useState({});
-  const cardRendered = useRef(1);
+  const [fetch, setFetch] = useState(true);
+  const cardRendered = useRef(0);
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
@@ -40,7 +42,7 @@ export const CardList = (prop) => {
   const fetchDataCart = async (cardRendered) => {
     const d = {};
 
-    for (let i = cardRendered; i < cardRendered + 20; i++) {
+    for (let i = cardRendered + 1; i < cardRendered + 21; i++) {
       const dataCartUser = await axios.get(
         `https://dummyjson.com/carts/user/${i}`,
       );
@@ -52,7 +54,10 @@ export const CardList = (prop) => {
       }
     }
 
-    setDataCart(d);
+    setDataCart({
+      ...dataCart,
+      ...d,
+    });
   };
 
   useEffect(() => {
@@ -64,8 +69,6 @@ export const CardList = (prop) => {
       }
     })();
   }, []);
-
-  console.log(data.length)
 
   useEffect(() => {
     if (productName !== "" && type === "products") {
@@ -82,7 +85,7 @@ export const CardList = (prop) => {
   }, [productName]);
 
   useEffect(() => {
-    if (data.length !== 0) {
+    if (data.length !== 0 && fetch) {
       (async () => {
         try {
           await fetchDataCart(cardRendered.current);
@@ -103,6 +106,8 @@ export const CardList = (prop) => {
     } else {
       alert("This is first page");
     }
+
+    setFetch(false);
   };
 
   const handleClickNext = () => {
@@ -114,6 +119,11 @@ export const CardList = (prop) => {
       );
     } else {
       alert("This is last page");
+    }
+
+    if (cardRendered.current === count) {
+      setCount(count + 20);
+      setFetch(true);
     }
   };
 

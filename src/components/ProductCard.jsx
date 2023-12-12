@@ -1,25 +1,114 @@
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { Card } from "./Card";
-
+import { CardRender } from "./Card";
+import {
+  Button,
+  Center,
+  Flex,
+  Image,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 export const ProductCard = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const location = useLocation();
-  const params = useParams()
+  const params = useParams();
 
   const product = location.state[params.id];
 
+  let boxBg = useColorModeValue("white !important", "#111c44 !important");
+  let mainText = useColorModeValue("gray.800", "white");
+  let secondaryText = useColorModeValue("gray.400", "gray.400");
+
   return (
-    <div className="justify-center items-center flex flex-col overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-      <div className="bg-transparent rounded-lg flex flex-col justify-center items-center">
-        {
-          <Card
-            name={product.title}
-            image={product.thumbnail}
+    <Center w={"100vh"} h={"100vh"}>
+      <Flex
+        borderRadius="20px"
+        bg={boxBg}
+        boxShadow="2xl"
+        pt="20px"
+        pb="20px"
+        h="365px"
+        w={{ base: "315px", md: "345px" }}
+        alignItems="center"
+        direction="column"
+      >
+        <Image
+          src="https://i.ibb.co/xmP2pS6/Profile.png"
+          maxW="100%"
+          borderRadius="20px"
+        />
+        <Flex flexDirection="column" mb="30px">
+          <Image
+            src={product.image}
+            border="5px solid red"
+            mx="auto"
+            borderColor={boxBg}
+            width="68px"
+            height="68px"
+            mt="-38px"
+            borderRadius="50%"
           />
-        }
-        <button onClick={() => navigate(-1)}>Back</button>
-      </div>
-    </div>
+          <Text
+            fontWeight="600"
+            color={mainText}
+            textAlign="center"
+            fontSize="xl"
+          >
+            {product.name}
+          </Text>
+          <Text
+            color={secondaryText}
+            textAlign="center"
+            fontSize="sm"
+            fontWeight="500"
+          >
+            ID: {product.id}
+          </Text>
+        </Flex>
+        <Flex justify="space-between" w="100%" px="36px">
+          <Flex flexDirection="column">
+            <Text color={secondaryText} fontWeight="500">
+              Total
+            </Text>
+            <Text
+              fontWeight="600"
+              color={mainText}
+              fontSize="xl"
+              textAlign="center"
+            >
+              {product.total}
+            </Text>
+          </Flex>
+          <Flex flexDirection="column">
+            <Text color={secondaryText} fontWeight="500">
+              Price
+            </Text>
+            <Text
+              fontWeight="600"
+              color={mainText}
+              fontSize="xl"
+              textAlign="center"
+            >
+              {product.price}$
+            </Text>
+          </Flex>
+          <Flex flexDirection="column">
+            <Text color={secondaryText} fontWeight="500">
+              Discount
+            </Text>
+            <Text
+              fontWeight="600"
+              fontSize="xl"
+              color={mainText}
+              textAlign="center"
+            >
+              {product.discountPct}%
+            </Text>
+          </Flex>
+        </Flex>
+        <Button mt={4} px={4} py={2} onClick={() => navigate(-1)}>Back</Button>
+      </Flex>
+    </Center>
   );
 };

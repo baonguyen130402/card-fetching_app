@@ -1,24 +1,27 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { UserIdContext } from "../lib/contexts/user-id-context";
-import ProductCartProvider, {
-  ProductCartContext,
-} from "../lib/contexts/ProductCartContext";
+import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
-import axios from "axios";
-import { ProductCard } from "./ProductCard";
+import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 
-export const Card = (props) => {
-  const { id, name, image, dataCart } = props;
+export const CardRender = (props) => {
+  const { data, dataCart } = props;
   const UserId = useRef();
   const [shouldFocusThisCard, setShouldFocusThisCard] = useState(false);
   const { userId, setUserId } = useContext(UserIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
 
+  const property = {
+    id: data.id,
+    imageUrl: data.image,
+    name: data.name,
+  };
+
   const handleClick = () => {
-    localStorage.setItem("focus-user-id", id);
-    setUserId(id);
-    UserId.current = id;
+    localStorage.setItem("focus-user-id", property.id);
+    setUserId(property.id);
+    UserId.current = property.id;
   };
 
   const getProductData = (userId) => {
@@ -35,8 +38,8 @@ export const Card = (props) => {
 
   useEffect(() => {
     const shouldFocusUserId = localStorage.getItem("focus-user-id");
-    if (id !== undefined) {
-      setShouldFocusThisCard(id === JSON.parse(shouldFocusUserId));
+    if (property.id !== undefined) {
+      setShouldFocusThisCard(property.id === JSON.parse(shouldFocusUserId));
     }
     if (userId !== undefined) {
       getProductData(userId);
@@ -47,36 +50,59 @@ export const Card = (props) => {
     <>
       {shouldFocusThisCard
         ? (
-          <a
-            onClick={handleClick}
-            className="flex flex-col max-w-sm p-2 mb-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-blue-700 dark:hover:bg-gray-700"
-          >
-            <img
-              className="w-32 mb-2 bg-transparent rounded-lg align-center mx-auto"
-              src={image}
-            />
-            <p className="font-normal text-gray-700 dark:text-gray-400">
-              {name}
-            </p>
-          </a>
-        )
-        : (
-          <a
+          <Card
+            bg="#999"
+            boxShadow="lg"
+            rounded="md"
             onClick={() => {
               handleClick();
               getProductData();
             }}
-            href="#"
-            className="flex flex-col max-w-sm p-2 mb-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
           >
-            <img
-              className="w-32 mb-2 bg-transparent rounded-lg align-center mx-auto"
-              src={image}
-            />
-            <p className="font-normal text-gray-700 dark:text-gray-400">
-              {name}
-            </p>
-          </a>
+            <CardBody>
+              <Stack align="center" direction="column" spacing={2}>
+                <Avatar
+                  bg="cyan"
+                  size="lg"
+                  src={property.imageUrl}
+                  name={property.name}
+                />
+                <Text
+                  align="center"
+                  fontSize="md"
+                >
+                  {property.name}
+                </Text>
+              </Stack>
+            </CardBody>
+          </Card>
+        )
+        : (
+          <Card
+            rounded="md"
+            onClick={() => {
+              handleClick();
+              getProductData();
+            }}
+          >
+            <CardBody>
+              <Stack align="center" direction="column" spacing={2}>
+                <Avatar
+                  bg="cyan"
+                  size="lg"
+                  src={property.imageUrl}
+                  title={property.name}
+                />
+                <Text
+                  align="center"
+                  fontSize="md"
+                  noOfLines={2}
+                >
+                  {property.name}
+                </Text>
+              </Stack>
+            </CardBody>
+          </Card>
         )}
     </>
   );

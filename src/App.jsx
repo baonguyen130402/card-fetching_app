@@ -1,9 +1,8 @@
-import "./App.css";
+// import "./App.css";
 
 import Router from "./components/Router";
 
-const App = () => {
+export const App = () => {
   return <Router />;
 };
 
-export default App;

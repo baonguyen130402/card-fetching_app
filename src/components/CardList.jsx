@@ -1,17 +1,37 @@
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Card } from "./Card";
+import { CardRender } from "./Card";
 import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Flex,
+  IconButton,
+  Input,
+  InputGroup,
+  InputRightElement,
+  SimpleGrid,
+  Spacer,
+  Stack,
+  useToast,
+} from "@chakra-ui/react";
+import {
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  CheckIcon,
+  SearchIcon,
+} from "@chakra-ui/icons";
 
 export const CardList = (prop) => {
   const { type } = prop;
-
-  const { productName, setProductName } = useContext(ProductNameContext);
-  const [data, setData] = useState([]);
-  const [count, setCount] = useState(20);
-  const [dataCart, setDataCart] = useState({});
-  const [fetch, setFetch] = useState(true);
+  const toast = useToast();
   const cardRendered = useRef(0);
+  const [data, setData] = useState([]);
+  const [dataCart, setDataCart] = useState({});
+  const [count, setCount] = useState(20);
+  const [fetch, setFetch] = useState(true);
+  const { productName, setProductName } = useContext(ProductNameContext);
 
   const fetchData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
@@ -104,7 +124,13 @@ export const CardList = (prop) => {
         `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
       );
     } else {
-      alert("This is first page");
+      toast({
+        title: "Can't load!!",
+        description: "This is first page.",
+        status: "error",
+        duration: 1500,
+        isClosable: true,
+      });
     }
 
     setFetch(false);
@@ -118,7 +144,13 @@ export const CardList = (prop) => {
         `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
       );
     } else {
-      alert("This is last page");
+      toast({
+        title: "Can't load more!!",
+        description: "This is last page.",
+        status: "error",
+        duration: 1500,
+        isClosable: true,
+      });
     }
 
     if (cardRendered.current === count) {
@@ -128,16 +160,30 @@ export const CardList = (prop) => {
   };
 
   return (
-    <article className="mb-4">
-      <section className="mb-4">
-        <button onClick={handleClickPrev}>Prev</button>
-        <button onClick={handleClickNext}>Next</button>
-        <div className="my-3">
-          <input
-            type="search"
-            name={type}
-            className="px-4 py-2 border-none outline-none rounded-lg focus:bg-gray-700"
-            placeholder="Input name"
+    <Box>
+      <Flex minWidth="max-content" alignItems="center" gap="2">
+        <Spacer />
+        <ButtonGroup gap="2">
+          <IconButton
+            variant="outline"
+            size="md"
+            icon={<ArrowBackIcon />}
+            onClick={handleClickPrev}
+          />
+          <IconButton
+            variant="outline"
+            size="md"
+            icon={<ArrowForwardIcon />}
+            onClick={handleClickNext}
+          />
+        </ButtonGroup>
+        <Spacer />
+      </Flex>
+      <Stack my={3} px={16}>
+        <InputGroup>
+          <Input
+            variant="filled"
+            placeholder="Name..."
             onChange={async (event) => {
               let searchString = event.target.value;
 
@@ -152,20 +198,38 @@ export const CardList = (prop) => {
               }
             }}
           />
-        </div>
-      </section>
-
-      <section className="grid grid-cols-4 gap-2 md:gap-y-0 h-screen overflow-y-auto">
-        {data.map((item) => (
-          <Card
-            id={item.id}
-            key={item.id}
-            name={item.name}
-            image={item.image}
-            dataCart={dataCart}
-          />
-        ))}
-      </section>
-    </article>
+          <InputRightElement>
+            <SearchIcon color="teal" />
+          </InputRightElement>
+        </InputGroup>
+      </Stack>
+      {type === "products"
+        ? (
+          <Stack h={"50vh"} overflowY="auto">
+            <SimpleGrid columns={4} spacing={2}>
+              {data.map((dataRender, id) => (
+                <CardRender
+                  key={id}
+                  data={dataRender}
+                  dataCart={dataCart}
+                />
+              ))}
+            </SimpleGrid>
+          </Stack>
+        )
+        : (
+          <Stack>
+            <SimpleGrid columns={4} spacing={2}>
+              {data.map((dataRender, id) => (
+                <CardRender
+                  key={id}
+                  data={dataRender}
+                  dataCart={dataCart}
+                />
+              ))}
+            </SimpleGrid>
+          </Stack>
+        )}
+    </Box>
   );
 };

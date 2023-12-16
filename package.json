@@ -17,6 +17,7 @@
     "autoprefixer": "^10.4.16",
     "axios": "^1.5.1",
     "framer-motion": "^10.16.16",
+    "lodash.debounce": "^4.0.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

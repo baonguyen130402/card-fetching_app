@@ -6,6 +6,8 @@ import { UserIdContext } from "../lib/contexts/user-id-context.tsx";
 import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 import {
+  Center,
+  Stack,
   Table,
   TableContainer,
   Tbody,
@@ -42,8 +44,6 @@ export const Cart = () => {
     const d = [];
     const dc = [];
 
-    console.log(products);
-
     products.forEach((product) => {
       d.push({
         id: product.id,
@@ -71,45 +71,55 @@ export const Cart = () => {
   }, [productData, userId]);
 
   return (
-    <TableContainer mt={8} size="sm">
-      <Table size="sm" variant="simple">
-        <Thead>
-          <Tr>
-            {cartTableKeys.map((key, idx) => (
-              <Th key={idx} maxW="20px">
-                {key}
-              </Th>
-            ))}
-          </Tr>
-        </Thead>
-        {data.map((product, index) => (
-          <Tbody
-            key={index}
-            className="border"
-            onClick={() => setProductName(product.title)}
-          >
-            <Tr>
-              {Object.values(product).map((el, idx) => (
-                // FIXME: Error in console. (Fixed)
-                <Td
-                  maxW="20px"
-                  key={idx}
+    <Stack>
+      {data.length !== 0
+        ? (
+          <TableContainer mt={8} size="sm">
+            <Table size="sm" variant="simple">
+              <Thead>
+                <Tr>
+                  {cartTableKeys.map((key, idx) => (
+                    <Th key={idx} maxW="20px">
+                      {key}
+                    </Th>
+                  ))}
+                </Tr>
+              </Thead>
+              {data.map((product, index) => (
+                <Tbody
+                  key={index}
+                  className="border"
+                  onClick={() => setProductName(product.title)}
                 >
-                  <Text noOfLines={1}>
-                    <Link
-                      to={`/product/${index}`}
-                      state={dataCard}
-                      className="text-white cursor-pointer"
-                    >
-                      {el}
-                    </Link>
-                  </Text>
-                </Td>
+                  <Tr>
+                    {Object.values(product).map((el, idx) => (
+                      // FIXME: Error in console. (Fixed)
+                      <Td
+                        maxW="20px"
+                        key={idx}
+                      >
+                        <Text noOfLines={1}>
+                          <Link
+                            to={`/product/${index}`}
+                            state={dataCard}
+                            className="text-white cursor-pointer"
+                          >
+                            {el}
+                          </Link>
+                        </Text>
+                      </Td>
+                    ))}
+                  </Tr>
+                </Tbody>
               ))}
-            </Tr>
-          </Tbody>
-        ))}
-      </Table>
-    </TableContainer>
+            </Table>
+          </TableContainer>
+        )
+        : (
+          <Center h={"300px"}>
+            <Text fontSize="24px">Please select user to show cart</Text>
+          </Center>
+        )}
+    </Stack>
   );
 };

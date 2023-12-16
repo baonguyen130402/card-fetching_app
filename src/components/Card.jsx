@@ -1,15 +1,23 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { UserIdContext } from "../lib/contexts/user-id-context";
+import { ProductIdContext } from "../lib/contexts/product-id-context";
+
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 
 export const CardRender = (props) => {
-  const { data, dataCart } = props;
+  const { data, type, dataCart } = props;
+
   const UserId = useRef();
-  const [shouldFocusThisCard, setShouldFocusThisCard] = useState(false);
+  const ProductId = useRef();
+
+  const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
+  const [shouldFocusThisProduct, setShouldFocusThisProduct] = useState(false);
+
   const { userId, setUserId } = useContext(UserIdContext);
+  const { productId, setProductId } = useContext(ProductIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
 
   const property = {
@@ -18,14 +26,28 @@ export const CardRender = (props) => {
     name: data.name,
   };
 
-  const handleClick = () => {
-    localStorage.setItem("focus-user-id", property.id);
-    setUserId(property.id);
-    UserId.current = property.id;
+  const handleClick = (type) => {
+    if (type === "products") {
+      sessionStorage.setItem("focus-product-id", property.id);
+      setProductId(property.id);
+      ProductId.current = property.id;
+    }
+
+    if (type === "users") {
+      sessionStorage.setItem("focus-user-id", property.id);
+      setUserId(property.id);
+      UserId.current = property.id;
+    }
+
+    console.log(`Type: ${type}`);
+    console.log(`Property Id: ${property.id}`);
+    console.log(`userId: ${userId}, UserId: ${UserId.current}`);
+    console.log(`productId: ${productId}, ProductId: ${ProductId.current}`);
   };
 
   const getProductData = (userId) => {
     let products;
+    const dataSaved = JSON.parse(sessionStorage.getItem("dataCart"));
 
     if (dataCart[userId] !== undefined) {
       products = dataCart[userId];
@@ -33,29 +55,52 @@ export const CardRender = (props) => {
 
     if (products !== undefined) {
       setProductData(products);
+      sessionStorage.setItem("dataCart", JSON.stringify(products))
+    }
+
+    if (products === undefined && dataSaved !== undefined) {
+      setProductData(dataSaved)
     }
   };
 
   useEffect(() => {
-    const shouldFocusUserId = localStorage.getItem("focus-user-id");
-    if (property.id !== undefined) {
-      setShouldFocusThisCard(property.id === JSON.parse(shouldFocusUserId));
+    const shouldFocusUserId = sessionStorage.getItem("focus-user-id");
+
+    if (property.id !== undefined && type === "users") {
+      setShouldFocusThisUser(
+        property.id === JSON.parse(shouldFocusUserId),
+      );
     }
+
     if (userId !== undefined) {
       getProductData(userId);
     }
   }, [userId]);
 
+  useEffect(() => {
+    const shouldFocusProductId = sessionStorage.getItem("focus-product-id");
+
+    if (property.id !== undefined && type === "products") {
+      setShouldFocusThisProduct(
+        property.id === JSON.parse(shouldFocusProductId),
+      );
+    }
+    if (productId !== undefined) {
+      getProductData(productId);
+    }
+  }, [productId]);
+
   return (
     <>
-      {shouldFocusThisCard
+      {shouldFocusThisUser && type === "users" ||
+          shouldFocusThisProduct && type === "products"
         ? (
           <Card
             bg="#999"
             boxShadow="lg"
             rounded="md"
             onClick={() => {
-              handleClick();
+              handleClick(props.type);
               getProductData();
             }}
           >
@@ -81,7 +126,7 @@ export const CardRender = (props) => {
           <Card
             rounded="md"
             onClick={() => {
-              handleClick();
+              handleClick(props.type);
               getProductData();
             }}
           >

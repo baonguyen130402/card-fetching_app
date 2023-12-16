@@ -1,10 +1,9 @@
 import React from "react";
-import {} from "react";
 import { createContext, useState } from "react";
 
 interface Props {
   userId: any;
-  setUserId: (value) => void;
+  setUserId: (value: string[]) => void;
 }
 
 export const UserIdContext = createContext<Props>({

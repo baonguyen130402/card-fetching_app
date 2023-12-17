@@ -37,14 +37,14 @@ export const Cart = () => {
   const getData = () => {
     let products = [];
 
-    if (productData.length !== 0) {
+    if (productData?.length !== 0) {
       products = productData;
     }
 
     const d = [];
     const dc = [];
 
-    products.forEach((product) => {
+    products?.forEach((product) => {
       d.push({
         id: product.id,
         name: product.title,

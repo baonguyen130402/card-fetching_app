@@ -2,6 +2,7 @@ import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
 import { CardRender } from "./Card";
 import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
+import debounce from "lodash.debounce";
 import {
   Box,
   ButtonGroup,
@@ -21,25 +22,53 @@ export const CardList = (prop) => {
   const { type } = prop;
   const toast = useToast();
   const cardRendered = useRef(0);
+  const [query, setQuery] = useState("");
   const [data, setData] = useState([]);
   const [dataCart, setDataCart] = useState({});
   const [count, setCount] = useState(20);
   const [fetch, setFetch] = useState(true);
-  const { productName, setProductName } = useContext(ProductNameContext);
 
-  const fetchData = async (endpoint) => {
-    // const savedDataUser = JSON.parse(sessionStorage.getItem("dataUser"));
-    // const savedDataProduct = JSON.parse(sessionStorage.getItem("dataProduct"));
+  const users = JSON.parse(sessionStorage.getItem("users"));
+  const products = JSON.parse(sessionStorage.getItem("products"));
 
+  const initializeData = ({ type } = prop) => {
+    if (type === "users") {
+      setData(users.slice(cardRendered.current, cardRendered.current + 20));
+    }
+
+    if (type === "products") {
+      setData(products.slice(cardRendered.current, cardRendered.current + 20));
+    }
+  };
+
+  const fetchAllData = async (endpoint, type) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
 
-    // if (savedDataUser.length !== 0 && d.length === 0 && type === "users") {
-    //   setData(savedDataUser);
-    // } else if (
-    //   savedDataProduct.length !== 0 && d.length === 0 && type === "product"
-    // ) {
-    //   setData(savedDataProduct);
-    // }
+    const d = [];
+
+    if (type === "users") {
+      dataGetFromEndpoint.data.users.forEach((user) => {
+        d.push({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          image: user.image,
+        });
+      });
+      sessionStorage.setItem("users", JSON.stringify(d));
+    } else if (type === "products") {
+      dataGetFromEndpoint.data.products.forEach((product) => {
+        d.push({
+          id: product.id,
+          name: `${product.title}`,
+          image: product.images[0],
+        });
+      });
+      sessionStorage.setItem("products", JSON.stringify(d));
+    }
+  };
+
+  const fetchData = async (endpoint) => {
+    const dataGetFromEndpoint = await axios.get(endpoint);
 
     const d = [];
 
@@ -91,6 +120,10 @@ export const CardList = (prop) => {
     (async () => {
       try {
         await fetchData(`https://dummyjson.com/${type}?limit=20`);
+
+        if (users === null || products === null) {
+          await fetchAllData(`https://dummyjson.com/${type}?limit=100`, type);
+        }
       } catch (err) {
         console.log(err);
       }
@@ -98,21 +131,7 @@ export const CardList = (prop) => {
   }, []);
 
   useEffect(() => {
-    if (productName !== "" && type === "products") {
-      (async () => {
-        try {
-          await fetchData(
-            `https://dummyjson.com/${type}/search?q=${productName}`,
-          );
-        } catch (err) {
-          console.log(err);
-        }
-      })();
-    }
-  }, [productName]);
-
-  useEffect(() => {
-    if (data.length >= 20 && fetch) {
+    if (data?.length >= 20 && fetch) {
       (async () => {
         try {
           await fetchDataCart(cardRendered.current);
@@ -121,15 +140,11 @@ export const CardList = (prop) => {
         }
       })();
     }
-  }, [cardRendered.current, data.length]);
+  }, [cardRendered.current, data?.length]);
 
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
       cardRendered.current -= 20;
-
-      fetchData(
-        `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
-      );
     } else {
       toast({
         title: "Can't load!!",
@@ -140,16 +155,14 @@ export const CardList = (prop) => {
       });
     }
 
+    initializeData({ type });
+
     setFetch(false);
   };
 
   const handleClickNext = () => {
     if (cardRendered.current <= 60) {
       cardRendered.current += 20;
-
-      fetchData(
-        `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
-      );
     } else {
       toast({
         title: "Can't load more!!",
@@ -160,25 +173,44 @@ export const CardList = (prop) => {
       });
     }
 
+    initializeData({ type });
+
     if (cardRendered.current === count) {
       setCount(count + 20);
       setFetch(true);
     }
   };
 
-  const handleSearch = async (event) => {
-    let searchString = event.target.value;
+  const getFilteredItems = (query) => {
+    const type = prop.type;
 
-    if (searchString.length !== 0) {
-      await fetchData(
-        `https://dummyjson.com/${type}/search?q=${searchString}`,
-      );
-    } else {
-      await fetchData(
-        `https://dummyjson.com/${type}?limit=20&skip=${cardRendered.current}`,
-      );
+    if (type === "users") {
+      if (query.length === 0) {
+        setData(users?.slice(cardRendered.current, cardRendered.current + 20));
+      } else {
+        const d = users.filter((user) => user.name.includes(query));
+        setData(d);
+      }
+    }
+
+    if (type === "products") {
+      if (query.length === 0) {
+        setData(
+          products?.slice(cardRendered.current, cardRendered.current + 20),
+        );
+      } else {
+        const d = products.filter((product) => product.name.includes(query));
+        setData(d);
+      }
     }
   };
+
+  useEffect(() => {
+    getFilteredItems(query);
+  }, [query]);
+
+  const updateQuery = (e) => setQuery(e?.target?.value);
+  const debounceOnChange = debounce(updateQuery, 200);
 
   return (
     <Box>
@@ -205,7 +237,7 @@ export const CardList = (prop) => {
           <Input
             variant="filled"
             placeholder="Name..."
-            onChange={async (e) => await handleSearch(e)}
+            onChange={debounceOnChange}
           />
           <InputRightElement>
             <SearchIcon color="teal" />
@@ -216,7 +248,7 @@ export const CardList = (prop) => {
         ? (
           <Stack h={"50vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {data.map((dataRender, id) => (
+              {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
                   type="products"
@@ -230,7 +262,7 @@ export const CardList = (prop) => {
         : (
           <Stack h={"85vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {data.map((dataRender, id) => (
+              {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
                   type="users"

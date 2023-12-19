@@ -1,7 +1,6 @@
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
 import { CardRender } from "./Card";
-import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
 import debounce from "lodash.debounce";
 import {
   Box,
@@ -24,12 +23,15 @@ export const CardList = (prop) => {
   const cardRendered = useRef(0);
   const [query, setQuery] = useState("");
   const [data, setData] = useState([]);
-  const [dataCart, setDataCart] = useState({});
+  const [cartData, setCartData] = useState({});
   const [count, setCount] = useState(20);
   const [fetch, setFetch] = useState(true);
 
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
+  const carts = JSON.parse(sessionStorage.getItem("carts"));
+
+  console.log(carts)
 
   const initializeData = ({ type } = prop) => {
     if (type === "users") {
@@ -38,6 +40,48 @@ export const CardList = (prop) => {
 
     if (type === "products") {
       setData(products.slice(cardRendered.current, cardRendered.current + 20));
+    }
+  };
+
+  const getDataFirstPage = async (endpoint) => {
+    let dataGetFromEndpoint;
+    let dataRender;
+
+    if (users === null || products === null) {
+      dataGetFromEndpoint = await axios.get(endpoint);
+      const d = [];
+
+      if (type === "users") {
+        dataGetFromEndpoint.data.users.forEach((user) => {
+          d.push({
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`,
+            image: user.image,
+          });
+        });
+        setData(d);
+      }
+
+      if (type === "products") {
+        dataGetFromEndpoint.data.products.forEach((product) => {
+          d.push({
+            id: product.id,
+            name: product.title,
+            image: product.images[0],
+          });
+        });
+        setData(d);
+      }
+    } else {
+      if (type === "users") {
+        dataRender = users.slice(0, 20);
+      }
+
+      if (type === "products") {
+        dataRender = products.slice(0, 20);
+      }
+
+      setData(dataRender);
     }
   };
 
@@ -55,7 +99,9 @@ export const CardList = (prop) => {
         });
       });
       sessionStorage.setItem("users", JSON.stringify(d));
-    } else if (type === "products") {
+    }
+
+    if (type === "products") {
       dataGetFromEndpoint.data.products.forEach((product) => {
         d.push({
           id: product.id,
@@ -67,59 +113,21 @@ export const CardList = (prop) => {
     }
   };
 
-  const fetchData = async (endpoint) => {
-    const dataGetFromEndpoint = await axios.get(endpoint);
-
-    const d = [];
-
-    if (type === "users") {
-      dataGetFromEndpoint.data.users.forEach((user) => {
-        d.push({
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
-          image: user.image,
-        });
-      });
-    } else if (type === "products") {
-      dataGetFromEndpoint.data.products.forEach((product) => {
-        d.push({
-          id: product.id,
-          name: `${product.title}`,
-          image: product.images[0],
-        });
-      });
+  const fetchAllDataCart = async (endpoint) => {
+    if (carts === null) {
+      const dataGetFromEndpoint = await axios.get(endpoint);
+      const d = dataGetFromEndpoint.data.carts;
+      sessionStorage.setItem("carts", JSON.stringify(d));
+      setCartData(d);
+    } else {
+      setCartData(carts);
     }
-
-    setData(d);
-  };
-
-  const fetchDataCart = async (cardRendered) => {
-    const d = {};
-
-    if (data.length >= 20) {
-      for (let i = cardRendered + 1; i < cardRendered + 21; i++) {
-        const dataCartUser = await axios.get(
-          `https://dummyjson.com/carts/user/${i}`,
-        );
-
-        if (dataCartUser.data.carts.length !== 0) {
-          d[i] = dataCartUser.data.carts[0].products;
-        } else {
-          continue;
-        }
-      }
-    }
-
-    setDataCart({
-      ...dataCart,
-      ...d,
-    });
   };
 
   useEffect(() => {
     (async () => {
       try {
-        await fetchData(`https://dummyjson.com/${type}?limit=20`);
+        await getDataFirstPage(`https://dummyjson.com/${type}?limit=20`);
 
         if (users === null || products === null) {
           await fetchAllData(`https://dummyjson.com/${type}?limit=100`, type);
@@ -131,16 +139,10 @@ export const CardList = (prop) => {
   }, []);
 
   useEffect(() => {
-    if (data?.length >= 20 && fetch) {
-      (async () => {
-        try {
-          await fetchDataCart(cardRendered.current);
-        } catch (err) {
-          console.log(err);
-        }
-      })();
-    }
-  }, [cardRendered.current, data?.length]);
+    (async () => {
+      await fetchAllDataCart("https://dummyjson.com/carts");
+    })();
+  }, []);
 
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
@@ -253,7 +255,7 @@ export const CardList = (prop) => {
                   key={id}
                   type="products"
                   data={dataRender}
-                  dataCart={dataCart}
+                  cartData={cartData}
                 />
               ))}
             </SimpleGrid>
@@ -267,7 +269,7 @@ export const CardList = (prop) => {
                   key={id}
                   type="users"
                   data={dataRender}
-                  dataCart={dataCart}
+                  cartData={cartData}
                 />
               ))}
             </SimpleGrid>

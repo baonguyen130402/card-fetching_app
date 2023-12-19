@@ -8,11 +8,12 @@ import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 
 export const CardRender = (props) => {
-  const { data, type, dataCart } = props;
+  const { data, type, cartData } = props;
 
   const UserId = useRef();
   const ProductId = useRef();
 
+  const [allCartData, setAllCartData] = useState({});
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
   const [shouldFocusThisProduct, setShouldFocusThisProduct] = useState(false);
 
@@ -38,28 +39,36 @@ export const CardRender = (props) => {
       setUserId(property.id);
       UserId.current = property.id;
     }
-
-    console.log(`Type: ${type}`);
-    console.log(`Property Id: ${property.id}`);
-    console.log(`userId: ${userId}, UserId: ${UserId.current}`);
-    console.log(`productId: ${productId}, ProductId: ${ProductId.current}`);
   };
 
   const getProductData = (userId) => {
-    let products;
-    const dataSaved = JSON.parse(sessionStorage.getItem("dataCart"));
+    const d = {};
+    const temp = [];
+    const userIdHasCart = [];
+    const cartCurrent = JSON.parse(sessionStorage.getItem("cartCurrent"));
 
-    if (dataCart[userId] !== undefined) {
-      products = dataCart[userId];
+    cartData.forEach((cart) => {
+      userIdHasCart.push(cart.userId);
+
+      d[cart.userId] = cart.products;
+
+      setAllCartData({
+        allCartData,
+        ...d,
+      });
+    });
+
+    if (userIdHasCart.includes(userId)) {
+      sessionStorage.setItem(
+        "cartCurrent",
+        JSON.stringify(allCartData[userId]),
+      );
     }
 
-    if (products !== undefined) {
-      setProductData(products);
-      sessionStorage.setItem("dataCart", JSON.stringify(products))
-    }
-
-    if (products === undefined && dataSaved !== undefined) {
-      setProductData(dataSaved)
+    if (cartCurrent.length !== 0) {
+      setProductData(cartCurrent);
+    } else {
+      setProductData(allCartData[userId]);
     }
   };
 
@@ -101,7 +110,7 @@ export const CardRender = (props) => {
             rounded="md"
             onClick={() => {
               handleClick(props.type);
-              getProductData();
+              getProductData(userId);
             }}
           >
             <CardBody>

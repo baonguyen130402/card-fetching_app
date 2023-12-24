@@ -1,6 +1,5 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { CardRender } from "./Card";
 import {
   Button,
   Center,
@@ -21,16 +20,16 @@ export const ProductCard = () => {
   let secondaryText = useColorModeValue("gray.400", "gray.400");
 
   return (
-    <Center w={"100vh"} h={"100vh"}>
+    <Center w={"100vw"} h={"100vh"}>
       <Flex
         borderRadius="20px"
         bg={boxBg}
         boxShadow="2xl"
         pt="20px"
         pb="20px"
-        h="365px"
         w={{ base: "315px", md: "345px" }}
         alignItems="center"
+        justifyContent="center"
         direction="column"
       >
         <Image
@@ -41,7 +40,6 @@ export const ProductCard = () => {
         <Flex flexDirection="column" mb="30px">
           <Image
             src={product.image}
-            border="5px solid red"
             mx="auto"
             borderColor={boxBg}
             width="68px"

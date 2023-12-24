@@ -43,11 +43,10 @@ export const CardRender = (props) => {
 
   const getProductData = (userId) => {
     const d = {};
-    const temp = [];
     const userIdHasCart = [];
     const cartCurrent = JSON.parse(sessionStorage.getItem("cartCurrent"));
 
-    cartData.forEach((cart) => {
+    cartData?.forEach((cart) => {
       userIdHasCart.push(cart.userId);
 
       d[cart.userId] = cart.products;
@@ -65,7 +64,7 @@ export const CardRender = (props) => {
       );
     }
 
-    if (cartCurrent.length !== 0) {
+    if (cartCurrent?.length !== 0) {
       setProductData(cartCurrent);
     } else {
       setProductData(allCartData[userId]);
@@ -105,7 +104,7 @@ export const CardRender = (props) => {
           shouldFocusThisProduct && type === "products"
         ? (
           <Card
-            bg="#999"
+            bg="cardBgWhenActive"
             boxShadow="lg"
             rounded="md"
             onClick={() => {
@@ -116,7 +115,6 @@ export const CardRender = (props) => {
             <CardBody>
               <Stack align="center" direction="column" spacing={2}>
                 <Avatar
-                  bg="cyan"
                   size="lg"
                   src={property.imageUrl}
                   name={property.name}
@@ -133,6 +131,7 @@ export const CardRender = (props) => {
         )
         : (
           <Card
+            bg="cardBg"
             rounded="md"
             onClick={() => {
               handleClick(props.type);
@@ -142,7 +141,7 @@ export const CardRender = (props) => {
             <CardBody>
               <Stack align="center" direction="column" spacing={2}>
                 <Avatar
-                  bg="cyan"
+                  bg="light.50"
                   size="lg"
                   src={property.imageUrl}
                   title={property.name}

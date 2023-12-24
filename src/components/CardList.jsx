@@ -31,7 +31,7 @@ export const CardList = (prop) => {
   const products = JSON.parse(sessionStorage.getItem("products"));
   const carts = JSON.parse(sessionStorage.getItem("carts"));
 
-  console.log(carts)
+  console.log(carts);
 
   const initializeData = ({ type } = prop) => {
     if (type === "users") {
@@ -158,8 +158,6 @@ export const CardList = (prop) => {
     }
 
     initializeData({ type });
-
-    setFetch(false);
   };
 
   const handleClickNext = () => {
@@ -184,8 +182,6 @@ export const CardList = (prop) => {
   };
 
   const getFilteredItems = (query) => {
-    const type = prop.type;
-
     if (type === "users") {
       if (query.length === 0) {
         setData(users?.slice(cardRendered.current, cardRendered.current + 20));
@@ -221,12 +217,14 @@ export const CardList = (prop) => {
         <ButtonGroup gap="2">
           <IconButton
             variant="outline"
+            bg="btnBg"
             size="md"
             icon={<ArrowBackIcon />}
             onClick={handleClickPrev}
           />
           <IconButton
             variant="outline"
+            bg="btnBg"
             size="md"
             icon={<ArrowForwardIcon />}
             onClick={handleClickNext}

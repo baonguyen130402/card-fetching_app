@@ -74,7 +74,7 @@ export const Cart = () => {
     <Stack>
       {data.length !== 0
         ? (
-          <TableContainer mt={8} size="sm">
+          <TableContainer bg="cartBg" mt={8} size="sm" p={3}>
             <Table size="sm" variant="simple">
               <Thead>
                 <Tr>

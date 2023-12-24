@@ -3,7 +3,7 @@ import { Button, useColorMode } from "@chakra-ui/react";
 
 export const ToggleThemeBtn = () => {
   const { colorMode, toggleColorMode } = useColorMode();
-  
+
   return (
     <Button
       pos="absolute"

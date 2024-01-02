@@ -21,6 +21,8 @@ export const CardRender = (props) => {
   const { productId, setProductId } = useContext(ProductIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
 
+  const lastQuery = sessionStorage.getItem("lastQuery");
+
   const property = {
     id: data.id,
     imageUrl: data.image,
@@ -39,6 +41,8 @@ export const CardRender = (props) => {
       setUserId(property.id);
       UserId.current = property.id;
     }
+
+    sessionStorage.removeItem("lastQuery");
   };
 
   const getProductData = (userId) => {

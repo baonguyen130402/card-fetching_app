@@ -30,7 +30,9 @@ export default function Router() {
                     </GridItem>
                     <GridItem rowSpan={1}>
                       <CardList type="products" />
-                      <Cart />
+                      <Box mt={4}>
+                        <Cart />
+                      </Box>
                     </GridItem>
                   </Grid>
                 </ProductCartProvider>

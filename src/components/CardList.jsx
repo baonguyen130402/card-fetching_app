@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CardRender } from "./Card";
 import debounce from "lodash.debounce";
 import {
@@ -25,13 +25,10 @@ export const CardList = (prop) => {
   const [data, setData] = useState([]);
   const [cartData, setCartData] = useState({});
   const [count, setCount] = useState(20);
-  const [fetch, setFetch] = useState(true);
 
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
   const carts = JSON.parse(sessionStorage.getItem("carts"));
-
-  console.log(carts);
 
   const initializeData = ({ type } = prop) => {
     if (type === "users") {
@@ -136,9 +133,7 @@ export const CardList = (prop) => {
         console.log(err);
       }
     })();
-  }, []);
 
-  useEffect(() => {
     (async () => {
       await fetchAllDataCart("https://dummyjson.com/carts");
     })();
@@ -177,7 +172,6 @@ export const CardList = (prop) => {
 
     if (cardRendered.current === count) {
       setCount(count + 20);
-      setFetch(true);
     }
   };
 

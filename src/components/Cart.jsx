@@ -2,11 +2,16 @@ import { useContext, useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 
+import debounce from "lodash.debounce";
+
 import { UserIdContext } from "../lib/contexts/user-id-context.tsx";
-import { ProductNameContext } from "../lib/contexts/ProductNameContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
+
 import {
   Center,
+  Input,
+  InputGroup,
+  InputRightElement,
   Stack,
   Table,
   TableContainer,
@@ -18,15 +23,24 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
-// TODO: Update imports.
+import { SearchIcon } from "@chakra-ui/icons";
 
 export const Cart = () => {
+  const [query, setQuery] = useState("");
+
+  const [shouldReverse, setShouldReverse] = useState(false);
+
   const [data, setData] = useState([{}]);
   const [dataCard, setDataCard] = useState([{}]);
+  const [currentData, setCurrentData] = useState([{}]);
+
   const { userId, setUserId } = useContext(UserIdContext);
-  const { productName, setProductName } = useContext(ProductNameContext);
   const { productData, setProductData } = useContext(ProductCartContext);
+
   let cartTableKeys;
+
+  const filteredItem = JSON.parse(sessionStorage.getItem("filteredItem"));
+  const lastQuery = sessionStorage.getItem("lastQuery");
 
   if (data.length !== 0) {
     cartTableKeys = Object.keys(data[0]);
@@ -48,9 +62,7 @@ export const Cart = () => {
       d.push({
         id: product.id,
         name: product.title,
-        total: product.total,
         price: product.price,
-        quantity: product.quantity,
       });
       dc.push({
         id: product.id,
@@ -62,16 +74,84 @@ export const Cart = () => {
       });
     });
 
-    setData(d);
+    if (lastQuery?.length !== undefined) {
+      setData(filteredItem);
+    } else {
+      setData(d);
+    }
+
+    setCurrentData(d);
     setDataCard(dc);
   };
 
   useEffect(() => {
     getData();
-  }, [productData, userId]);
+  }, [userId, productData]);
+
+  const getFilteredItems = (query) => {
+    if (query.length === 0) {
+      setData(currentData);
+    } else {
+      const d = data.filter((item) =>
+        item?.name?.toLowerCase().includes(query.toLowerCase())
+      );
+      setData(d);
+      sessionStorage.setItem("filteredItem", JSON.stringify(d));
+      sessionStorage.setItem("lastQuery", query.toLowerCase());
+    }
+  };
+
+  useEffect(() => {
+    getFilteredItems(query);
+  }, [query]);
+
+  const updateQuery = (e) => setQuery(e?.target?.value);
+  const debounceOnChange = debounce(updateQuery, 200);
+
+  const sortData = (type) => {
+    const d = data.slice(0);
+
+    if (type === "id") {
+      d.sort((a, b) => {
+        return shouldReverse ? a.id - b.id : b.id - a.id;
+      });
+    } else if (type === "name") {
+      d.sort((a, b) => {
+        const x = a.name.toLowerCase();
+        const y = b.name.toLowerCase();
+
+        return shouldReverse
+          ? x < y ? -1 : x > y ? 1 : 0
+          : x > y
+          ? -1
+          : x < y
+          ? 1
+          : 0;
+      });
+    } else {
+      d.sort((a, b) => {
+        return shouldReverse ? a.price - b.price : b.price - a.price;
+      });
+    }
+
+    setData(d);
+    setShouldReverse(!shouldReverse);
+  };
 
   return (
     <Stack>
+      <Stack px={16}>
+        <InputGroup>
+          <Input
+            variant="filled"
+            placeholder="Product..."
+            onChange={debounceOnChange}
+          />
+          <InputRightElement>
+            <SearchIcon color="teal" />
+          </InputRightElement>
+        </InputGroup>
+      </Stack>
       {data.length !== 0
         ? (
           <TableContainer bg="cartBg" mt={8} size="sm" p={3}>
@@ -79,7 +159,13 @@ export const Cart = () => {
               <Thead>
                 <Tr>
                   {cartTableKeys.map((key, idx) => (
-                    <Th key={idx} maxW="20px">
+                    <Th
+                      key={idx}
+                      maxW="20px"
+                      onClick={() => {
+                        sortData(key);
+                      }}
+                    >
                       {key}
                     </Th>
                   ))}
@@ -89,7 +175,6 @@ export const Cart = () => {
                 <Tbody
                   key={index}
                   className="border"
-                  onClick={() => setProductName(product.title)}
                 >
                   <Tr>
                     {Object.values(product).map((el, idx) => (

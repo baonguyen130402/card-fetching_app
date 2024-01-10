@@ -5,8 +5,8 @@ import { CardList } from "./CardList.jsx";
 import { ProductCard } from "./ProductCard.jsx";
 import { ToggleThemeBtn } from "../chakraUI/ToggleTheme.jsx";
 
-import UserIdObserver from "../lib/contexts/user-id-context.tsx";
-import ProductIdObserver from "../lib/contexts/product-id-context.tsx";
+import UserIdProvider from "../lib/contexts/UserIdContext.tsx"
+import ProductIdProvider from "../lib/contexts/ProductIdContext.tsx";
 import ProductProvider from "../lib/contexts/ProductNameContext.tsx";
 import ProductCartProvider from "../lib/contexts/ProductCartContext.tsx";
 import { Box, Container, Grid, GridItem } from "@chakra-ui/react";
@@ -17,8 +17,8 @@ export default function Router() {
       <Container w={"100vw"} maxW="4xl" centerContent>
         <Box p={4} w={"100vw"} maxW="4xl">
           <ToggleThemeBtn />
-          <UserIdObserver>
-            <ProductIdObserver>
+          <UserIdProvider>
+            <ProductIdProvider>
               <ProductProvider>
                 <ProductCartProvider>
                   <Grid
@@ -37,8 +37,8 @@ export default function Router() {
                   </Grid>
                 </ProductCartProvider>
               </ProductProvider>
-            </ProductIdObserver>
-          </UserIdObserver>
+            </ProductIdProvider>
+          </UserIdProvider>
         </Box>
       </Container>
     );

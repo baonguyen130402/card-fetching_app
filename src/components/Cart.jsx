@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import debounce from "lodash.debounce";
 
-import { UserIdContext } from "../lib/contexts/user-id-context.tsx";
+import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import {
@@ -78,15 +78,14 @@ export const Cart = () => {
       setData(filteredItem);
     } else {
       setData(d);
+      setCurrentData(d);
+      setDataCard(dc);
     }
-
-    setCurrentData(d);
-    setDataCard(dc);
   };
 
   useEffect(() => {
     getData();
-  }, [userId, productData]);
+  }, [userId, productData, lastQuery]);
 
   const getFilteredItems = (query) => {
     if (query.length === 0) {
@@ -144,6 +143,7 @@ export const Cart = () => {
         <InputGroup>
           <Input
             variant="filled"
+            defaultValue={lastQuery !== null ? lastQuery : ""}
             placeholder="Product..."
             onChange={debounceOnChange}
           />

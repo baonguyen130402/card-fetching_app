@@ -204,6 +204,8 @@ export const CardList = (prop) => {
   const updateQuery = (e) => setQuery(e?.target?.value);
   const debounceOnChange = debounce(updateQuery, 200);
 
+  console.log(data)
+
   return (
     <Box>
       <Flex minWidth="max-content" alignItems="center" gap="2">

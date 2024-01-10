@@ -11,7 +11,7 @@ export const ProductIdContext = createContext<Props>({
   setProductId: () => {},
 });
 
-export default function ProductIdObserver({ children }) {
+export default function ProductIdProvider({ children }) {
   const [productId, setProduct] = useState("");
 
   return (

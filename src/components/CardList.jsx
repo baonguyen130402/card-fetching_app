@@ -21,6 +21,7 @@ export const CardList = (prop) => {
   const { type } = prop;
   const toast = useToast();
   const cardRendered = useRef(0);
+
   const [query, setQuery] = useState("");
   const [data, setData] = useState([]);
   const [cartData, setCartData] = useState({});
@@ -29,6 +30,14 @@ export const CardList = (prop) => {
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
   const carts = JSON.parse(sessionStorage.getItem("carts"));
+  const filteredItemUser = JSON.parse(
+    sessionStorage.getItem("filteredItemUser"),
+  );
+  const filteredItemProduct = JSON.parse(
+    sessionStorage.getItem("filteredItemProduct"),
+  );
+  const lastQueryUser = sessionStorage.getItem("lastQueryUser");
+  const lastQueryProduct = sessionStorage.getItem("lastQueryProduct");
 
   const initializeData = ({ type } = prop) => {
     if (type === "users") {
@@ -40,9 +49,9 @@ export const CardList = (prop) => {
     }
   };
 
+  let dataRender;
   const getDataFirstPage = async (endpoint) => {
     let dataGetFromEndpoint;
-    let dataRender;
 
     if (users === null || products === null) {
       dataGetFromEndpoint = await axios.get(endpoint);
@@ -56,7 +65,12 @@ export const CardList = (prop) => {
             image: user.image,
           });
         });
-        setData(d);
+
+        if (lastQueryUser?.length !== 0) {
+          setData(filteredItemUser);
+        } else {
+          setData(d);
+        }
       }
 
       if (type === "products") {
@@ -71,11 +85,15 @@ export const CardList = (prop) => {
       }
     } else {
       if (type === "users") {
-        dataRender = users.slice(0, 20);
+        dataRender = lastQueryUser.length !== 0
+          ? filteredItemUser
+          : users.slice(0, 20);
       }
 
       if (type === "products") {
-        dataRender = products.slice(0, 20);
+        dataRender = lastQueryProduct.length !== 0
+          ? filteredItemProduct
+          : products.slice(0, 20);
       }
 
       setData(dataRender);
@@ -133,7 +151,9 @@ export const CardList = (prop) => {
         console.log(err);
       }
     })();
+  }, []);
 
+  useEffect(() => {
     (async () => {
       await fetchAllDataCart("https://dummyjson.com/carts");
     })();
@@ -182,6 +202,8 @@ export const CardList = (prop) => {
       } else {
         const d = users.filter((user) => user.name.includes(query));
         setData(d);
+        sessionStorage.setItem("filteredItemUser", JSON.stringify(d));
+        sessionStorage.setItem("lastQueryUser", query);
       }
     }
 
@@ -193,6 +215,8 @@ export const CardList = (prop) => {
       } else {
         const d = products.filter((product) => product.name.includes(query));
         setData(d);
+        sessionStorage.setItem("filteredItemProduct", JSON.stringify(d));
+        sessionStorage.setItem("lastQueryProduct", query);
       }
     }
   };
@@ -202,9 +226,8 @@ export const CardList = (prop) => {
   }, [query]);
 
   const updateQuery = (e) => setQuery(e?.target?.value);
-  const debounceOnChange = debounce(updateQuery, 200);
 
-  console.log(data)
+  const debounceOnChange = debounce(updateQuery, 200);
 
   return (
     <Box>
@@ -233,6 +256,9 @@ export const CardList = (prop) => {
           <Input
             variant="filled"
             placeholder="Name..."
+            defaultValue={type === "products"
+              ? lastQueryProduct
+              : lastQueryUser}
             onChange={debounceOnChange}
           />
           <InputRightElement>
@@ -244,9 +270,9 @@ export const CardList = (prop) => {
         ? (
           <Stack h={"50vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {data?.map((dataRender, id) => (
+              {data?.map((dataRender) => (
                 <CardRender
-                  key={id}
+                  key={dataRender.id}
                   type="products"
                   data={dataRender}
                   cartData={cartData}

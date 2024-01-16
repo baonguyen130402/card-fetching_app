@@ -39,8 +39,10 @@ export const Cart = () => {
 
   let cartTableKeys;
 
-  const filteredItem = JSON.parse(sessionStorage.getItem("filteredItem"));
-  const lastQuery = sessionStorage.getItem("lastQuery");
+  const filteredItemCart = JSON.parse(
+    sessionStorage.getItem("filteredItemCart"),
+  );
+  const lastQueryCart = sessionStorage.getItem("lastQueryCart");
 
   if (data.length !== 0) {
     cartTableKeys = Object.keys(data[0]);
@@ -74,8 +76,8 @@ export const Cart = () => {
       });
     });
 
-    if (lastQuery?.length !== undefined) {
-      setData(filteredItem);
+    if (lastQueryCart?.length !== undefined) {
+      setData(filteredItemCart);
     } else {
       setData(d);
       setCurrentData(d);
@@ -85,7 +87,7 @@ export const Cart = () => {
 
   useEffect(() => {
     getData();
-  }, [userId, productData, lastQuery]);
+  }, [userId, productData, lastQueryCart]);
 
   const getFilteredItems = (query) => {
     if (query.length === 0) {
@@ -95,8 +97,8 @@ export const Cart = () => {
         item?.name?.toLowerCase().includes(query.toLowerCase())
       );
       setData(d);
-      sessionStorage.setItem("filteredItem", JSON.stringify(d));
-      sessionStorage.setItem("lastQuery", query.toLowerCase());
+      sessionStorage.setItem("filteredItemCart", JSON.stringify(d));
+      sessionStorage.setItem("lastQueryCart", query);
     }
   };
 
@@ -143,7 +145,7 @@ export const Cart = () => {
         <InputGroup>
           <Input
             variant="filled"
-            defaultValue={lastQuery !== null ? lastQuery : ""}
+            defaultValue={lastQueryCart !== null ? lastQueryCart : ""}
             placeholder="Product..."
             onChange={debounceOnChange}
           />

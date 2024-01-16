@@ -11,9 +11,6 @@ import { prototype } from "postcss/lib/previous-map";
 export const CardRender = (props) => {
   const { data, type, cartData } = props;
 
-  const UserId = useRef();
-  const ProductId = useRef();
-
   const [allCartData, setAllCartData] = useState({});
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
   const [shouldFocusThisProduct, setShouldFocusThisProduct] = useState(false);
@@ -56,6 +53,8 @@ export const CardRender = (props) => {
       );
     }
 
+    console.log(cartCurrent);
+
     if (cartCurrent?.length !== 0) {
       setProductData(cartCurrent);
     } else {
@@ -73,7 +72,7 @@ export const CardRender = (props) => {
     if (userId !== undefined) {
       getProductData(userId);
     }
-  }, [userId]);
+  }, [userId, data]);
 
   useEffect(() => {
     const shouldFocusProductId = sessionStorage.getItem("focus-product-id");
@@ -81,7 +80,7 @@ export const CardRender = (props) => {
     setShouldFocusThisProduct(
       property.id === JSON.parse(shouldFocusProductId),
     );
-  }, [productId]);
+  }, [productId, data]);
 
   const handleClick = (type) => {
     if (type === "products") {

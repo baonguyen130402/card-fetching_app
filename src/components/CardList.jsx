@@ -30,12 +30,14 @@ export const CardList = (prop) => {
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
   const carts = JSON.parse(sessionStorage.getItem("carts"));
+
   const filteredItemUser = JSON.parse(
     sessionStorage.getItem("filteredItemUser"),
   );
   const filteredItemProduct = JSON.parse(
     sessionStorage.getItem("filteredItemProduct"),
   );
+
   const lastQueryUser = sessionStorage.getItem("lastQueryUser");
   const lastQueryProduct = sessionStorage.getItem("lastQueryProduct");
 
@@ -49,8 +51,8 @@ export const CardList = (prop) => {
     }
   };
 
-  let dataRender;
   const getDataFirstPage = async (endpoint) => {
+    let dataRender;
     let dataGetFromEndpoint;
 
     if (users === null || products === null) {

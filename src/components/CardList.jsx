@@ -87,13 +87,13 @@ export const CardList = (prop) => {
       }
     } else {
       if (type === "users") {
-        dataRender = lastQueryUser.length !== 0
+        dataRender = lastQueryUser?.length !== 0
           ? filteredItemUser
           : users.slice(0, 20);
       }
 
       if (type === "products") {
-        dataRender = lastQueryProduct.length !== 0
+        dataRender = lastQueryProduct?.length !== 0
           ? filteredItemProduct
           : products.slice(0, 20);
       }
@@ -113,8 +113,10 @@ export const CardList = (prop) => {
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
           image: user.image,
+          defaultValueInput: "Boanguye",
         });
       });
+
       sessionStorage.setItem("users", JSON.stringify(d));
     }
 
@@ -126,6 +128,7 @@ export const CardList = (prop) => {
           image: product.images[0],
         });
       });
+
       sessionStorage.setItem("products", JSON.stringify(d));
     }
   };
@@ -272,9 +275,9 @@ export const CardList = (prop) => {
         ? (
           <Stack h={"50vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {data?.map((dataRender) => (
+              {data?.map((dataRender, id) => (
                 <CardRender
-                  key={dataRender.id}
+                  key={id}
                   type="products"
                   data={dataRender}
                   cartData={cartData}

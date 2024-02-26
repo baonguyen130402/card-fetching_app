@@ -5,10 +5,12 @@ import { CardList } from "./CardList.jsx";
 import { ProductCard } from "./ProductCard.jsx";
 import { ToggleThemeBtn } from "../chakraUI/ToggleTheme.jsx";
 
-import UserIdProvider from "../lib/contexts/UserIdContext.tsx"
+import UserIdProvider from "../lib/contexts/UserIdContext.tsx";
 import ProductIdProvider from "../lib/contexts/ProductIdContext.tsx";
 import ProductProvider from "../lib/contexts/ProductNameContext.tsx";
 import ProductCartProvider from "../lib/contexts/ProductCartContext.tsx";
+import DefaultValueProvider from "../lib/contexts/DefaultValueContext.tsx";
+
 import { Box, Container, Grid, GridItem } from "@chakra-ui/react";
 
 export default function Router() {
@@ -21,20 +23,22 @@ export default function Router() {
             <ProductIdProvider>
               <ProductProvider>
                 <ProductCartProvider>
-                  <Grid
-                    gap={8}
-                    templateColumns="repeat(2, minmax(200px, 1fr))"
-                  >
-                    <GridItem rowSpan={2}>
-                      <CardList type="users" />
-                    </GridItem>
-                    <GridItem rowSpan={1}>
-                      <CardList type="products" />
-                      <Box mt={4}>
-                        <Cart />
-                      </Box>
-                    </GridItem>
-                  </Grid>
+                  <DefaultValueProvider>
+                    <Grid
+                      gap={8}
+                      templateColumns="repeat(2, minmax(200px, 1fr))"
+                    >
+                      <GridItem rowSpan={2}>
+                        <CardList type="users" />
+                      </GridItem>
+                      <GridItem rowSpan={1}>
+                        <CardList type="products" />
+                        <Box mt={4}>
+                          <Cart />
+                        </Box>
+                      </GridItem>
+                    </Grid>
+                  </DefaultValueProvider>
                 </ProductCartProvider>
               </ProductProvider>
             </ProductIdProvider>

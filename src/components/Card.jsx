@@ -2,11 +2,10 @@ import { useContext, useEffect, useRef, useState } from "react";
 
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
-
+import { DefaultValueContext } from "../lib/contexts/DefaultValueContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
-import { prototype } from "postcss/lib/previous-map";
 
 export const CardRender = (props) => {
   const { data, type, cartData } = props;
@@ -18,6 +17,9 @@ export const CardRender = (props) => {
   const { userId, setUserId } = useContext(UserIdContext);
   const { productId, setProductId } = useContext(ProductIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
+  const { defaultValueCard, setDefaultValueCard } = useContext(
+    DefaultValueContext,
+  );
 
   const lastQuery = sessionStorage.getItem("lastQuery");
 
@@ -47,13 +49,13 @@ export const CardRender = (props) => {
         JSON.stringify(d[userId]),
       );
     } else {
-      sessionStorage.setItem(
-        "cartCurrent",
-        JSON.stringify([{}]),
-      );
+      if (cartCurrent?.length !== 0 && userId !== "") {
+        sessionStorage.setItem(
+          "cartCurrent",
+          JSON.stringify([""]),
+        );
+      }
     }
-
-    console.log(cartCurrent);
 
     if (cartCurrent?.length !== 0) {
       setProductData(cartCurrent);
@@ -61,6 +63,13 @@ export const CardRender = (props) => {
       setProductData(allCartData[userId]);
     }
   };
+
+  const users = JSON.parse(sessionStorage.getItem("users"));
+
+  const test = {};
+  test[userId] = defaultValueCard;
+
+  console.log(test);
 
   useEffect(() => {
     const shouldFocusUserId = sessionStorage.getItem("focus-user-id");
@@ -99,7 +108,7 @@ export const CardRender = (props) => {
   return (
     <>
       {shouldFocusThisUser && type === "users" ||
-          shouldFocusThisProduct && type === "products"
+        shouldFocusThisProduct && type === "products"
         ? (
           <Card
             bg="cardBgWhenActive"

@@ -6,6 +6,7 @@ import debounce from "lodash.debounce";
 
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
+import { DefaultValueContext } from "../lib/contexts/DefaultValueContext.tsx";
 
 import {
   Center,
@@ -32,19 +33,19 @@ export const Cart = () => {
 
   const [data, setData] = useState([{}]);
   const [dataCard, setDataCard] = useState([{}]);
-  const [currentData, setCurrentData] = useState([{}]);
+  const [lastData, setLastData] = useState([{}]);
 
   const { userId, setUserId } = useContext(UserIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
+  const { defaultValueCard, setDefaultValueCard } = useContext(
+    DefaultValueContext,
+  );
+
+  const lastQuery = sessionStorage.getItem("lastQuery");
 
   let cartTableKeys;
 
-  const filteredItemCart = JSON.parse(
-    sessionStorage.getItem("filteredItemCart"),
-  );
-  const lastQueryCart = sessionStorage.getItem("lastQueryCart");
-
-  if (data.length !== 0) {
+  if (data?.length !== 0) {
     cartTableKeys = Object.keys(data[0]);
   } else {
     cartTableKeys = [];
@@ -76,29 +77,35 @@ export const Cart = () => {
       });
     });
 
-    if (lastQueryCart?.length !== undefined) {
-      setData(filteredItemCart);
+    if (lastQuery !== null) {
+      getFilteredItems(lastQuery);
+      console.log();
+      setQuery(lastQuery);
     } else {
       setData(d);
-      setCurrentData(d);
-      setDataCard(dc);
     }
+
+    setLastData(d);
+    setDataCard(dc);
   };
+
+  console.log(lastQuery);
 
   useEffect(() => {
     getData();
-  }, [userId, productData, lastQueryCart]);
+  }, [userId, productData, lastQuery]);
 
   const getFilteredItems = (query) => {
-    if (query.length === 0) {
-      setData(currentData);
+    if (query?.length === 0) {
+      setData(lastData);
     } else {
       const d = data.filter((item) =>
         item?.name?.toLowerCase().includes(query.toLowerCase())
       );
+
       setData(d);
-      sessionStorage.setItem("filteredItemCart", JSON.stringify(d));
-      sessionStorage.setItem("lastQueryCart", query);
+
+      sessionStorage.setItem("lastQuery", query);
     }
   };
 
@@ -124,10 +131,10 @@ export const Cart = () => {
         return shouldReverse
           ? x < y ? -1 : x > y ? 1 : 0
           : x > y
-          ? -1
-          : x < y
-          ? 1
-          : 0;
+            ? -1
+            : x < y
+              ? 1
+              : 0;
       });
     } else {
       d.sort((a, b) => {
@@ -145,7 +152,7 @@ export const Cart = () => {
         <InputGroup>
           <Input
             variant="filled"
-            defaultValue={lastQueryCart !== null ? lastQueryCart : ""}
+            defaultValue={lastQuery === null ? "" : lastQuery}
             placeholder="Product..."
             onChange={debounceOnChange}
           />

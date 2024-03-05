@@ -33,15 +33,18 @@ export const Cart = () => {
 
   const [data, setData] = useState([{}]);
   const [dataCard, setDataCard] = useState([{}]);
-  const [lastData, setLastData] = useState([{}]);
+  // const [currentData, setCurrentData] = useState([{}]);
 
   const { userId, setUserId } = useContext(UserIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
-  const { defaultValueCard, setDefaultValueCard } = useContext(
-    DefaultValueContext,
-  );
+  // const { defaultValueCard, setDefaultValueCard } = useContext(
+  //   DefaultValueContext,
+  // );
 
   const lastQuery = sessionStorage.getItem("lastQuery");
+  const currentData = JSON.parse(
+    sessionStorage.getItem("currentData"),
+  );
 
   let cartTableKeys;
 
@@ -77,41 +80,49 @@ export const Cart = () => {
       });
     });
 
-    if (lastQuery !== null) {
-      getFilteredItems(lastQuery);
-      console.log();
-      setQuery(lastQuery);
-    } else {
-      setData(d);
-    }
-
-    setLastData(d);
+    setData(d);
+    sessionStorage.setItem("currentData", JSON.stringify(d));
     setDataCard(dc);
   };
 
-  console.log(lastQuery);
+  console.log(" ");
+  console.log("query", query);
+  console.log("length of query ", query?.length);
+  console.log("lastQuery", lastQuery);
+  console.log("currentData", currentData);
+  console.log(" ");
 
   useEffect(() => {
     getData();
-  }, [userId, productData, lastQuery]);
+    console.log("data in useEffect", data);
+  }, [userId, productData]);
 
   const getFilteredItems = (query) => {
+    const d = data?.filter((item) =>
+      item?.name?.toLowerCase().includes(query?.toLowerCase())
+    );
+
+    console.log("getFilteredItem", query);
+    console.log("d", d);
+    console.log("currentData in func", currentData);
+
     if (query?.length === 0) {
-      setData(lastData);
-    } else {
-      const d = data.filter((item) =>
-        item?.name?.toLowerCase().includes(query.toLowerCase())
-      );
-
-      setData(d);
-
-      sessionStorage.setItem("lastQuery", query);
-    }
+      setData(currentData);
+    } else setData(d);
   };
 
   useEffect(() => {
     getFilteredItems(query);
+    if (query.length === 0 && lastQuery?.length !== 0) {
+      sessionStorage.setItem("lastQuery", lastQuery);
+    } else {
+      sessionStorage.setItem("lastQuery", query);
+    }
   }, [query]);
+
+  useEffect(() => {
+    getFilteredItems(lastQuery);
+  }, [lastQuery]);
 
   const updateQuery = (e) => setQuery(e?.target?.value);
   const debounceOnChange = debounce(updateQuery, 200);
@@ -152,7 +163,7 @@ export const Cart = () => {
         <InputGroup>
           <Input
             variant="filled"
-            defaultValue={lastQuery === null ? "" : lastQuery}
+            defaultValue={lastQuery === "null" ? "" : lastQuery}
             placeholder="Product..."
             onChange={debounceOnChange}
           />

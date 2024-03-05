@@ -145,6 +145,20 @@ export const CardList = (prop) => {
   };
 
   useEffect(() => {
+    if (lastQueryUser?.length !== 0) {
+      if (type === "users") {
+        getFilteredItems(lastQueryUser);
+      }
+    }
+
+    if (lastQueryProduct?.length !== 0) {
+      if (type === "products") {
+        getFilteredItems(lastQueryProduct);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     (async () => {
       try {
         await getDataFirstPage(`https://dummyjson.com/${type}?limit=20`);
@@ -202,32 +216,46 @@ export const CardList = (prop) => {
 
   const getFilteredItems = (query) => {
     if (type === "users") {
-      if (query.length === 0) {
+      const d = users?.filter((user) => user.name.includes(query));
+
+      if (query?.length === 0) {
         setData(users?.slice(cardRendered.current, cardRendered.current + 20));
       } else {
-        const d = users.filter((user) => user.name.includes(query));
         setData(d);
-        sessionStorage.setItem("filteredItemUser", JSON.stringify(d));
-        sessionStorage.setItem("lastQueryUser", query);
       }
     }
 
     if (type === "products") {
-      if (query.length === 0) {
+      const d = products?.filter((product) => product.name.includes(query));
+
+      if (query?.length === 0) {
         setData(
           products?.slice(cardRendered.current, cardRendered.current + 20),
         );
       } else {
-        const d = products.filter((product) => product.name.includes(query));
         setData(d);
-        sessionStorage.setItem("filteredItemProduct", JSON.stringify(d));
-        sessionStorage.setItem("lastQueryProduct", query);
       }
     }
   };
 
   useEffect(() => {
     getFilteredItems(query);
+
+    if (type === "users") {
+      if (query.length === 0 && lastQueryUser?.length !== 0) {
+        sessionStorage.setItem("lastQueryUser", lastQueryUser);
+      } else {
+        sessionStorage.setItem("lastQueryUser", query);
+      }
+    }
+
+    if (type === "products") {
+      if (query.length === 0 && lastQueryProduct?.length !== 0) {
+        sessionStorage.setItem("lastQueryProduct", lastQueryProduct);
+      } else {
+        sessionStorage.setItem("lastQueryProduct", query);
+      }
+    }
   }, [query]);
 
   const updateQuery = (e) => setQuery(e?.target?.value);
@@ -262,8 +290,10 @@ export const CardList = (prop) => {
             variant="filled"
             placeholder="Name..."
             defaultValue={type === "products"
-              ? lastQueryProduct
-              : lastQueryUser}
+              ? lastQueryProduct === "null" ? "" : lastQueryProduct
+              : lastQueryUser === "null"
+                ? ""
+                : lastQueryUser}
             onChange={debounceOnChange}
           />
           <InputRightElement>

@@ -69,7 +69,7 @@ export const CardRender = (props) => {
   const test = {};
   test[userId] = defaultValueCard;
 
-  console.log(test);
+  // console.log(test);
 
   useEffect(() => {
     const shouldFocusUserId = sessionStorage.getItem("focus-user-id");

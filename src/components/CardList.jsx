@@ -239,8 +239,6 @@ export const CardList = (prop) => {
   };
 
   useEffect(() => {
-    getFilteredItems(query);
-
     if (type === "users") {
       if (query.length === 0 && lastQueryUser?.length !== 0) {
         sessionStorage.setItem("lastQueryUser", lastQueryUser);
@@ -256,10 +254,11 @@ export const CardList = (prop) => {
         sessionStorage.setItem("lastQueryProduct", query);
       }
     }
+
+    getFilteredItems(query);
   }, [query]);
 
   const updateQuery = (e) => setQuery(e?.target?.value);
-
   const debounceOnChange = debounce(updateQuery, 200);
 
   return (

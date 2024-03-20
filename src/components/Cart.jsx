@@ -6,7 +6,6 @@ import debounce from "lodash.debounce";
 
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
-import { DefaultValueContext } from "../lib/contexts/DefaultValueContext.tsx";
 
 import {
   Center,
@@ -28,23 +27,17 @@ import { SearchIcon } from "@chakra-ui/icons";
 
 export const Cart = () => {
   const [query, setQuery] = useState("");
-
+  console.log(query);
   const [shouldReverse, setShouldReverse] = useState(false);
 
   const [data, setData] = useState([{}]);
   const [dataCard, setDataCard] = useState([{}]);
-  // const [currentData, setCurrentData] = useState([{}]);
+  const [currentData, setCurrentData] = useState([{}]);
 
   const { userId, setUserId } = useContext(UserIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
-  // const { defaultValueCard, setDefaultValueCard } = useContext(
-  //   DefaultValueContext,
-  // );
 
   const lastQuery = sessionStorage.getItem("lastQuery");
-  const currentData = JSON.parse(
-    sessionStorage.getItem("currentData"),
-  );
 
   let cartTableKeys;
 
@@ -81,50 +74,47 @@ export const Cart = () => {
     });
 
     setData(d);
-    sessionStorage.setItem("currentData", JSON.stringify(d));
+    setCurrentData(d);
     setDataCard(dc);
   };
 
-  console.log(" ");
-  console.log("query", query);
-  console.log("length of query ", query?.length);
-  console.log("lastQuery", lastQuery);
-  console.log("currentData", currentData);
-  console.log(" ");
-
   useEffect(() => {
     getData();
-    console.log("data in useEffect", data);
   }, [userId, productData]);
+
+  useEffect(() => {
+    if (lastQuery?.length !== 0 && data.length !== 0) {
+      const d = data?.filter((item) =>
+        item?.name?.toLowerCase().includes(lastQuery?.toLowerCase())
+      );
+
+      setData(d);
+    }
+  }, [data]);
 
   const getFilteredItems = (query) => {
     const d = data?.filter((item) =>
       item?.name?.toLowerCase().includes(query?.toLowerCase())
     );
 
-    console.log("getFilteredItem", query);
-    console.log("d", d);
-    console.log("currentData in func", currentData);
-
     if (query?.length === 0) {
       setData(currentData);
     } else setData(d);
   };
 
-  useEffect(() => {
-    getFilteredItems(query);
+  const updateQuery = (e) => {
+    const query = e.target?.value;
+
     if (query.length === 0 && lastQuery?.length !== 0) {
-      sessionStorage.setItem("lastQuery", lastQuery);
+      sessionStorage.setItem("lastQuery", "");
     } else {
       sessionStorage.setItem("lastQuery", query);
     }
-  }, [query]);
 
-  useEffect(() => {
-    getFilteredItems(lastQuery);
-  }, [lastQuery]);
+    getFilteredItems(query);
+    setQuery(query);
+  };
 
-  const updateQuery = (e) => setQuery(e?.target?.value);
   const debounceOnChange = debounce(updateQuery, 200);
 
   const sortData = (type) => {
@@ -163,7 +153,7 @@ export const Cart = () => {
         <InputGroup>
           <Input
             variant="filled"
-            defaultValue={lastQuery === "null" ? "" : lastQuery}
+            defaultValue={lastQuery === null ? "" : lastQuery}
             placeholder="Product..."
             onChange={debounceOnChange}
           />

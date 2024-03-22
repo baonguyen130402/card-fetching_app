@@ -72,10 +72,21 @@ export const Cart = () => {
         discountPct: product.discountPercentage,
       });
     });
+    
+    if (lastQuery?.length !== 0) {
+      getFilteredItems(lastQuery);
+    }
 
-    setData(d);
-    setCurrentData(d);
+    if (currentData.length !== 1) {
+      setData(currentData);
+    } else {
+      setData(d);
+    }
+
+    // setData(d);
+    // setCurrentData(d);
     setDataCard(dc);
+    sessionStorage.setItem("currentData", JSON.stringify(d));
   };
 
   useEffect(() => {
@@ -90,7 +101,7 @@ export const Cart = () => {
 
       setData(d);
     }
-  }, [data]);
+  }, []);
 
   const getFilteredItems = (query) => {
     const d = data?.filter((item) =>

@@ -27,24 +27,27 @@ import { SearchIcon } from "@chakra-ui/icons";
 
 export const Cart = () => {
   const [query, setQuery] = useState("");
-  console.log(query);
   const [shouldReverse, setShouldReverse] = useState(false);
 
   const [data, setData] = useState([{}]);
   const [dataCard, setDataCard] = useState([{}]);
-  const [currentData, setCurrentData] = useState([{}]);
+
+  const lastQuery = sessionStorage.getItem("lastQuery");
+  const currentData = JSON.parse(
+    sessionStorage.getItem("currentData"),
+  );
 
   const { userId, setUserId } = useContext(UserIdContext);
   const { productData, setProductData } = useContext(ProductCartContext);
 
-  const lastQuery = sessionStorage.getItem("lastQuery");
-
   let cartTableKeys;
 
-  if (data?.length !== 0) {
-    cartTableKeys = Object.keys(data[0]);
-  } else {
+  if (data === undefined) {
     cartTableKeys = [];
+  } else {
+    if (data?.length !== 0) {
+      cartTableKeys = Object.keys(data[0]);
+    }
   }
 
   const getData = () => {
@@ -72,46 +75,27 @@ export const Cart = () => {
         discountPct: product.discountPercentage,
       });
     });
-    
-    if (lastQuery?.length !== 0) {
-      getFilteredItems(lastQuery);
+
+    if (d.length !== 0) {
+      sessionStorage.setItem("currentData", JSON.stringify(d));
     }
 
-    if (currentData.length !== 1) {
-      setData(currentData);
-    } else {
-      setData(d);
-    }
+    lastQuery !== null ? getFilteredItems(lastQuery) : setData(d);
 
-    // setData(d);
-    // setCurrentData(d);
     setDataCard(dc);
-    sessionStorage.setItem("currentData", JSON.stringify(d));
+  };
+
+  const getFilteredItems = (q) => {
+    const d = currentData?.filter((item) =>
+      item?.name?.toLowerCase().includes(q?.toLowerCase())
+    );
+
+    q?.length !== 0 ? setData(d) : setData(currentData);
   };
 
   useEffect(() => {
     getData();
   }, [userId, productData]);
-
-  useEffect(() => {
-    if (lastQuery?.length !== 0 && data.length !== 0) {
-      const d = data?.filter((item) =>
-        item?.name?.toLowerCase().includes(lastQuery?.toLowerCase())
-      );
-
-      setData(d);
-    }
-  }, []);
-
-  const getFilteredItems = (query) => {
-    const d = data?.filter((item) =>
-      item?.name?.toLowerCase().includes(query?.toLowerCase())
-    );
-
-    if (query?.length === 0) {
-      setData(currentData);
-    } else setData(d);
-  };
 
   const updateQuery = (e) => {
     const query = e.target?.value;

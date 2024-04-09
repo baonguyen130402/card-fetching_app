@@ -16,20 +16,31 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
+import { useSearchParams } from "react-router-dom";
 
 export const CardList = (prop) => {
   const { type } = prop;
   const toast = useToast();
   const cardRendered = useRef(0);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  let user = searchParams.get("user");
+  let product = searchParams.get("product");
+
+  const [userPage, setUserPage] = useState(user !== "1" ? Number(user) : 1);
+  const [productPage, setProductPage] = useState(
+    product !== "1" ? Number(product) : 1,
+  );
+
   const [query, setQuery] = useState("");
-  const [data, setData] = useState([]);
-  const [cartData, setCartData] = useState({});
-  const [count, setCount] = useState(20);
+  const [cartData, setCartData] = useState([{}]);
+  const [userData, setUserData] = useState([{}]);
+  const [productData, setProductData] = useState([{}]);
 
   const users = JSON.parse(sessionStorage.getItem("users"));
-  const products = JSON.parse(sessionStorage.getItem("products"));
   const carts = JSON.parse(sessionStorage.getItem("carts"));
+  const products = JSON.parse(sessionStorage.getItem("products"));
 
   const filteredItemUser = JSON.parse(
     sessionStorage.getItem("filteredItemUser"),
@@ -43,62 +54,81 @@ export const CardList = (prop) => {
 
   const initializeData = ({ type } = prop) => {
     if (type === "users") {
-      setData(users.slice(cardRendered.current, cardRendered.current + 20));
+      setUserData(users.slice(cardRendered.current, cardRendered.current + 20));
     }
 
     if (type === "products") {
-      setData(products.slice(cardRendered.current, cardRendered.current + 20));
+      setProductData(
+        products.slice(cardRendered.current, cardRendered.current + 20),
+      );
     }
   };
 
-  const getDataFirstPage = async (endpoint) => {
+  const getUserDataOnFirstRender = async (endpoint) => {
     let dataRender;
     let dataGetFromEndpoint;
 
-    if (users === null || products === null) {
-      dataGetFromEndpoint = await axios.get(endpoint);
+    if (users === null) {
       const d = [];
+      dataGetFromEndpoint = await axios.get(endpoint);
 
-      if (type === "users") {
-        dataGetFromEndpoint.data.users.forEach((user) => {
-          d.push({
-            id: user.id,
-            name: `${user.firstName} ${user.lastName}`,
-            image: user.image,
-          });
+      dataGetFromEndpoint.data.users.forEach((user) => {
+        d.push({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          image: user.image,
         });
+      });
 
-        if (lastQueryUser?.length !== 0) {
-          setData(filteredItemUser);
-        } else {
-          setData(d);
-        }
+      if (lastQueryUser !== "null") {
+        setUserData(filteredItemUser);
+      } else {
+        setUserData(d);
       }
 
-      if (type === "products") {
-        dataGetFromEndpoint.data.products.forEach((product) => {
-          d.push({
-            id: product.id,
-            name: product.title,
-            image: product.images[0],
-          });
-        });
-        setData(d);
-      }
+      cardRendered.current = 20 * (userPage - 1);
     } else {
-      if (type === "users") {
-        dataRender = lastQueryUser?.length !== 0
-          ? filteredItemUser
-          : users.slice(0, 20);
+      cardRendered.current = 20 * (userPage - 1);
+
+      dataRender = lastQueryUser !== "null"
+        ? filteredItemUser
+        : users?.slice(cardRendered.current, cardRendered.current + 20);
+
+      setUserData(dataRender);
+    }
+  };
+
+  const getProductDataOnFirstRender = async (endpoint) => {
+    let dataRender;
+    let dataGetFromEndpoint;
+
+    if (products === null) {
+      const d = [];
+      dataGetFromEndpoint = await axios.get(endpoint);
+
+      dataGetFromEndpoint.data.products.forEach((product) => {
+        d.push({
+          id: product.id,
+          name: product.title,
+          image: product.images[0],
+        });
+      });
+
+      if (lastQueryProduct !== "null") {
+        setProductData(filteredItemProduct);
+      } else {
+        setProductData(d);
       }
 
-      if (type === "products") {
-        dataRender = lastQueryProduct?.length !== 0
-          ? filteredItemProduct
-          : products.slice(0, 20);
-      }
+      cardRendered.current = 20 * (productPage - 1);
+    } else {
+      cardRendered.current = 20 * (productPage - 1);
 
-      setData(dataRender);
+      dataRender = lastQueryProduct !== "null"
+        ? filteredItemProduct
+        : products?.slice(0, 20);
+
+      setProductData(dataRender);
     }
   };
 
@@ -113,7 +143,6 @@ export const CardList = (prop) => {
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
           image: user.image,
-          defaultValueInput: "Boanguye",
         });
       });
 
@@ -161,10 +190,27 @@ export const CardList = (prop) => {
   useEffect(() => {
     (async () => {
       try {
-        await getDataFirstPage(`https://dummyjson.com/${type}?limit=20`);
+        await getUserDataOnFirstRender(
+          `https://dummyjson.com/users?limit=20&skip=${(userPage - 1) * 20}`,
+        );
 
-        if (users === null || products === null) {
-          await fetchAllData(`https://dummyjson.com/${type}?limit=100`, type);
+        await getProductDataOnFirstRender(
+          `https://dummyjson.com/products?limit=20&skip=${(productPage - 1) * 20
+          }`,
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (userData.length !== 0 && productData.length !== 0) {
+          if (users === null || products === null) {
+            await fetchAllData(`https://dummyjson.com/${type}?limit=100`, type);
+          }
         }
       } catch (err) {
         console.log(err);
@@ -181,6 +227,16 @@ export const CardList = (prop) => {
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
       cardRendered.current -= 20;
+
+      if (type === "users") {
+        setUserPage(userPage - 1);
+        sessionStorage.setItem(
+          "currentUserPage",
+          JSON.stringify(cardRendered.current / 20 + 1),
+        );
+      } else {
+        setProductPage(productPage - 1);
+      }
     } else {
       toast({
         title: "Can't load!!",
@@ -197,6 +253,10 @@ export const CardList = (prop) => {
   const handleClickNext = () => {
     if (cardRendered.current <= 60) {
       cardRendered.current += 20;
+
+      type === "users"
+        ? setUserPage(userPage + 1)
+        : setProductPage(productPage + 1);
     } else {
       toast({
         title: "Can't load more!!",
@@ -208,20 +268,25 @@ export const CardList = (prop) => {
     }
 
     initializeData({ type });
-
-    if (cardRendered.current === count) {
-      setCount(count + 20);
-    }
   };
+
+  useEffect(() => {
+    setSearchParams({
+      user: userPage.toString(),
+      product: productPage.toString(),
+    });
+  }, [userPage, productPage]);
 
   const getFilteredItems = (query) => {
     if (type === "users") {
       const d = users?.filter((user) => user.name.includes(query));
 
       if (query?.length === 0) {
-        setData(users?.slice(cardRendered.current, cardRendered.current + 20));
+        setUserData(
+          users?.slice(cardRendered.current, cardRendered.current + 20),
+        );
       } else {
-        setData(d);
+        setUserData(d);
       }
     }
 
@@ -229,11 +294,11 @@ export const CardList = (prop) => {
       const d = products?.filter((product) => product.name.includes(query));
 
       if (query?.length === 0) {
-        setData(
+        setProductData(
           products?.slice(cardRendered.current, cardRendered.current + 20),
         );
       } else {
-        setData(d);
+        setProductData(d);
       }
     }
   };
@@ -304,7 +369,7 @@ export const CardList = (prop) => {
         ? (
           <Stack h={"50vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {data?.map((dataRender, id) => (
+              {productData?.map((dataRender, id) => (
                 <CardRender
                   key={id}
                   type="products"
@@ -318,7 +383,7 @@ export const CardList = (prop) => {
         : (
           <Stack h={"85vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {data?.map((dataRender, id) => (
+              {userData?.map((dataRender, id) => (
                 <CardRender
                   key={id}
                   type="users"

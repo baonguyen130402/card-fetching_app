@@ -12,9 +12,18 @@ import ProductCartProvider from "../lib/contexts/ProductCartContext.tsx";
 import DefaultValueProvider from "../lib/contexts/DefaultValueContext.tsx";
 
 import { Box, Container, Grid, GridItem } from "@chakra-ui/react";
+import { useSearchParams} from "react-router-dom"
 
 export default function Router() {
   const Layout = () => {
+    const [searchParams] = useSearchParams();
+    const [page, setPage] = useState(1);
+
+    let user = searchParams.get("user");
+    let product = searchParams.get("product");
+
+    const setPageFromCardList = (currentPage) => setPage(currentPage);
+
     return (
       <Container w={"100vw"} maxW="4xl" centerContent>
         <Box p={4} w={"100vw"} maxW="4xl">
@@ -29,10 +38,18 @@ export default function Router() {
                       templateColumns="repeat(2, minmax(200px, 1fr))"
                     >
                       <GridItem rowSpan={2}>
-                        <CardList type="users" />
+                        <CardList
+                          type="users"
+                          page={Number(user) === 0 ? 1 : Number(user)}
+                          setCurrentPage={setPageFromCardList}
+                        />
                       </GridItem>
                       <GridItem rowSpan={1}>
-                        <CardList type="products" />
+                        <CardList
+                          type="products"
+                          page={Number(product) === 0 ? 1 : Number(product)}
+                          setCurrentPage={setPageFromCardList}
+                        />
                         <Box mt={4}>
                           <Cart />
                         </Box>

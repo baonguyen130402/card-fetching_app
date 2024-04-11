@@ -1,3 +1,4 @@
+;
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { CardRender } from "./Card";
@@ -19,24 +20,21 @@ import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
 import { useSearchParams } from "react-router-dom";
 
 export const CardList = (prop) => {
-  const { type } = prop;
+  const { type, page, setCurrentPage } = prop;
   const toast = useToast();
   const cardRendered = useRef(0);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  let user = searchParams.get("user");
-  let product = searchParams.get("product");
+  const user = searchParams.get("user");
+  const product = searchParams.get("product");
 
-  const [userPage, setUserPage] = useState(user !== "1" ? Number(user) : 1);
-  const [productPage, setProductPage] = useState(
-    product !== "1" ? Number(product) : 1,
-  );
+  const userPage = useRef(Number(user) === 0 ? 1 : Number(user));
+  const productPage = useRef(Number(product) === 0 ? 1 : Number(product));
 
   const [query, setQuery] = useState("");
+  const [data, setData] = useState([{}]);
   const [cartData, setCartData] = useState([{}]);
-  const [userData, setUserData] = useState([{}]);
-  const [productData, setProductData] = useState([{}]);
 
   const users = JSON.parse(sessionStorage.getItem("users"));
   const carts = JSON.parse(sessionStorage.getItem("carts"));
@@ -52,87 +50,86 @@ export const CardList = (prop) => {
   const lastQueryUser = sessionStorage.getItem("lastQueryUser");
   const lastQueryProduct = sessionStorage.getItem("lastQueryProduct");
 
-  const initializeData = ({ type } = prop) => {
+  const initializeData = (type) => {
     if (type === "users") {
-      setUserData(users.slice(cardRendered.current, cardRendered.current + 20));
+      setData(users.slice(cardRendered.current, cardRendered.current + 20));
     }
 
     if (type === "products") {
-      setProductData(
+      setData(
         products.slice(cardRendered.current, cardRendered.current + 20),
       );
     }
+
+    console.log(searchParams.get("user"), searchParams.get("product"));
+    console.log(userPage.current, productPage.current);
+
+    setSearchParams({
+      user: userPage.current.toString(),
+      product: productPage.current.toString(),
+    });
   };
 
-  const getUserDataOnFirstRender = async (endpoint) => {
+  const getDataOnFirstRender = async (endpoint) => {
     let dataRender;
     let dataGetFromEndpoint;
 
-    if (users === null) {
+    if (users === null || products === null) {
       const d = [];
       dataGetFromEndpoint = await axios.get(endpoint);
 
-      dataGetFromEndpoint.data.users.forEach((user) => {
-        d.push({
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
-          image: user.image,
+      if (type === "users") {
+        dataGetFromEndpoint.data?.users?.forEach((user) => {
+          d.push({
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`,
+            image: user.image,
+          });
         });
-      });
 
-      if (lastQueryUser !== "null") {
-        setUserData(filteredItemUser);
-      } else {
-        setUserData(d);
+        if (lastQueryUser !== "null") {
+          setData(filteredItemUser);
+        } else {
+          setData(d);
+        }
       }
 
-      cardRendered.current = 20 * (userPage - 1);
+      if (type === "products") {
+        dataGetFromEndpoint.data?.products?.forEach((product) => {
+          d.push({
+            id: product.id,
+            name: product.title,
+            image: product.images[0],
+          });
+        });
+
+        if (lastQueryProduct !== "null") {
+          setData(filteredItemProduct);
+        } else {
+          setData(d);
+        }
+      }
+
+      cardRendered.current = 20 * (page - 1);
     } else {
-      cardRendered.current = 20 * (userPage - 1);
+      cardRendered.current = 20 * (page - 1);
+      if (type === "users") {
+        dataRender = lastQueryUser !== "null"
+          ? filteredItemUser
+          : users?.slice(cardRendered.current, cardRendered.current + 20);
+      }
 
-      dataRender = lastQueryUser !== "null"
-        ? filteredItemUser
-        : users?.slice(cardRendered.current, cardRendered.current + 20);
+      if (type === "products") {
+        dataRender = lastQueryProduct !== "null"
+          ? filteredItemProduct
+          : products?.slice(cardRendered.current, cardRendered.current + 20);
+      }
 
-      setUserData(dataRender);
+      setData(dataRender);
     }
   };
 
-  const getProductDataOnFirstRender = async (endpoint) => {
-    let dataRender;
-    let dataGetFromEndpoint;
-
-    if (products === null) {
-      const d = [];
-      dataGetFromEndpoint = await axios.get(endpoint);
-
-      dataGetFromEndpoint.data.products.forEach((product) => {
-        d.push({
-          id: product.id,
-          name: product.title,
-          image: product.images[0],
-        });
-      });
-
-      if (lastQueryProduct !== "null") {
-        setProductData(filteredItemProduct);
-      } else {
-        setProductData(d);
-      }
-
-      cardRendered.current = 20 * (productPage - 1);
-    } else {
-      cardRendered.current = 20 * (productPage - 1);
-
-      dataRender = lastQueryProduct !== "null"
-        ? filteredItemProduct
-        : products?.slice(0, 20);
-
-      setProductData(dataRender);
-    }
-  };
-
-  const fetchAllData = async (endpoint, type) => {
+  const fetchAllData = async (endpoint) => {
     const dataGetFromEndpoint = await axios.get(endpoint);
 
     const d = [];
@@ -171,6 +168,7 @@ export const CardList = (prop) => {
     } else {
       setCartData(carts);
     }
+    console.log("--- fetchAllDataCart");
   };
 
   useEffect(() => {
@@ -190,26 +188,13 @@ export const CardList = (prop) => {
   useEffect(() => {
     (async () => {
       try {
-        await getUserDataOnFirstRender(
-          `https://dummyjson.com/users?limit=20&skip=${(userPage - 1) * 20}`,
+        await getDataOnFirstRender(
+          `https://dummyjson.com/${type}?limit=20&skip=${(page - 1) * 20}`,
         );
 
-        await getProductDataOnFirstRender(
-          `https://dummyjson.com/products?limit=20&skip=${(productPage - 1) * 20
-          }`,
-        );
-      } catch (err) {
-        console.log(err);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        if (userData.length !== 0 && productData.length !== 0) {
+        if (data.length !== 0) {
           if (users === null || products === null) {
-            await fetchAllData(`https://dummyjson.com/${type}?limit=100`, type);
+            await fetchAllData(`https://dummyjson.com/${type}?limit=100`);
           }
         }
       } catch (err) {
@@ -227,16 +212,6 @@ export const CardList = (prop) => {
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
       cardRendered.current -= 20;
-
-      if (type === "users") {
-        setUserPage(userPage - 1);
-        sessionStorage.setItem(
-          "currentUserPage",
-          JSON.stringify(cardRendered.current / 20 + 1),
-        );
-      } else {
-        setProductPage(productPage - 1);
-      }
     } else {
       toast({
         title: "Can't load!!",
@@ -247,16 +222,23 @@ export const CardList = (prop) => {
       });
     }
 
-    initializeData({ type });
+    if (type === "users") {
+      if (userPage.current > 1) {
+        userPage.current -= 1;
+      }
+      setCurrentPage(userPage.current);
+    } else {
+      if (productPage.current > 1) {
+        productPage.current -= 1;
+      }
+      setCurrentPage(productPage.current);
+    }
+    initializeData(type);
   };
 
   const handleClickNext = () => {
     if (cardRendered.current <= 60) {
       cardRendered.current += 20;
-
-      type === "users"
-        ? setUserPage(userPage + 1)
-        : setProductPage(productPage + 1);
     } else {
       toast({
         title: "Can't load more!!",
@@ -267,26 +249,31 @@ export const CardList = (prop) => {
       });
     }
 
-    initializeData({ type });
-  };
+    if (type === "users") {
+      if (userPage.current < 5) {
+        userPage.current += 1;
+      }
+      setCurrentPage(userPage.current);
+    } else {
+      if (productPage.current < 5) {
+        productPage.current += 1;
+      }
+      setCurrentPage(productPage.current);
+    }
 
-  useEffect(() => {
-    setSearchParams({
-      user: userPage.toString(),
-      product: productPage.toString(),
-    });
-  }, [userPage, productPage]);
+    initializeData(type);
+  };
 
   const getFilteredItems = (query) => {
     if (type === "users") {
       const d = users?.filter((user) => user.name.includes(query));
 
       if (query?.length === 0) {
-        setUserData(
+        setData(
           users?.slice(cardRendered.current, cardRendered.current + 20),
         );
       } else {
-        setUserData(d);
+        setData(d);
       }
     }
 
@@ -294,11 +281,11 @@ export const CardList = (prop) => {
       const d = products?.filter((product) => product.name.includes(query));
 
       if (query?.length === 0) {
-        setProductData(
+        setData(
           products?.slice(cardRendered.current, cardRendered.current + 20),
         );
       } else {
-        setProductData(d);
+        setData(d);
       }
     }
   };
@@ -369,7 +356,7 @@ export const CardList = (prop) => {
         ? (
           <Stack h={"50vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {productData?.map((dataRender, id) => (
+              {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
                   type="products"
@@ -383,7 +370,7 @@ export const CardList = (prop) => {
         : (
           <Stack h={"85vh"} overflowY="auto">
             <SimpleGrid columns={4} spacing={2}>
-              {userData?.map((dataRender, id) => (
+              {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
                   type="users"
@@ -396,4 +383,4 @@ export const CardList = (prop) => {
         )}
     </Box>
   );
-};
+}

@@ -16,12 +16,8 @@ export const CardRender = (props) => {
 
   const { userId, setUserId } = useContext(UserIdContext);
   const { productId, setProductId } = useContext(ProductIdContext);
-  const { productData, setProductData } = useContext(ProductCartContext);
-  const { defaultValueCard, setDefaultValueCard } = useContext(
-    DefaultValueContext,
-  );
-
-  const lastQuery = sessionStorage.getItem("lastQuery");
+  const { setProductData } = useContext(ProductCartContext);
+  const { defaultValueCard } = useContext(DefaultValueContext);
 
   const property = {
     id: data.id,

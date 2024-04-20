@@ -1,4 +1,3 @@
-;
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { CardRender } from "./Card";
@@ -22,15 +21,9 @@ import { useSearchParams } from "react-router-dom";
 export const CardList = (prop) => {
   const { type, page, setCurrentPage } = prop;
   const toast = useToast();
+
   const cardRendered = useRef(0);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const user = searchParams.get("user");
-  const product = searchParams.get("product");
-
-  const userPage = useRef(Number(user) === 0 ? 1 : Number(user));
-  const productPage = useRef(Number(product) === 0 ? 1 : Number(product));
+  const currentPage = useRef(page);
 
   const [query, setQuery] = useState("");
   const [data, setData] = useState([{}]);
@@ -60,14 +53,6 @@ export const CardList = (prop) => {
         products.slice(cardRendered.current, cardRendered.current + 20),
       );
     }
-
-    console.log(searchParams.get("user"), searchParams.get("product"));
-    console.log(userPage.current, productPage.current);
-
-    setSearchParams({
-      user: userPage.current.toString(),
-      product: productPage.current.toString(),
-    });
   };
 
   const getDataOnFirstRender = async (endpoint) => {
@@ -223,15 +208,15 @@ export const CardList = (prop) => {
     }
 
     if (type === "users") {
-      if (userPage.current > 1) {
-        userPage.current -= 1;
+      if (currentPage.current > 1) {
+        currentPage.current -= 1;
       }
-      setCurrentPage(userPage.current);
+      setCurrentPage(currentPage.current);
     } else {
-      if (productPage.current > 1) {
-        productPage.current -= 1;
+      if (currentPage.current > 1) {
+        currentPage.current -= 1;
       }
-      setCurrentPage(productPage.current);
+      setCurrentPage(currentPage.current);
     }
     initializeData(type);
   };
@@ -250,15 +235,15 @@ export const CardList = (prop) => {
     }
 
     if (type === "users") {
-      if (userPage.current < 5) {
-        userPage.current += 1;
+      if (currentPage.current < 5) {
+        currentPage.current += 1;
       }
-      setCurrentPage(userPage.current);
+      setCurrentPage(currentPage.current);
     } else {
-      if (productPage.current < 5) {
-        productPage.current += 1;
+      if (currentPage.current < 5) {
+        currentPage.current += 1;
       }
-      setCurrentPage(productPage.current);
+      setCurrentPage(currentPage.current);
     }
 
     initializeData(type);
@@ -383,4 +368,4 @@ export const CardList = (prop) => {
         )}
     </Box>
   );
-}
+};

@@ -1,4 +1,9 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useSearchParams,
+} from "react-router-dom";
 
 import { Cart } from "./Cart.jsx";
 import { CardList } from "./CardList.jsx";
@@ -12,17 +17,36 @@ import ProductCartProvider from "../lib/contexts/ProductCartContext.tsx";
 import DefaultValueProvider from "../lib/contexts/DefaultValueContext.tsx";
 
 import { Box, Container, Grid, GridItem } from "@chakra-ui/react";
-import { useSearchParams} from "react-router-dom"
+import { useEffect, useState } from "react";
 
 export default function Router() {
   const Layout = () => {
-    const [searchParams] = useSearchParams();
-    const [page, setPage] = useState(1);
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    let user = searchParams.get("user");
-    let product = searchParams.get("product");
+    let user = searchParams.get("user") === null
+      ? "1"
+      : searchParams.get("user");
+    let product = searchParams.get("product") === null
+      ? "1"
+      : searchParams.get("product");
 
-    const setPageFromCardList = (currentPage) => setPage(currentPage);
+    const [userPage, setUserPage] = useState(user !== "1" ? Number(user) : 1);
+    const [productPage, setProductPage] = useState(
+      product !== "1" ? Number(product) : 1,
+    );
+
+    const setUserPageFromCardList = (currentPage) => setUserPage(currentPage);
+    const setProductPageFromCardList = (currentPage) =>
+      setProductPage(currentPage);
+
+    console.log(userPage, productPage);
+
+    useEffect(() => {
+      setSearchParams({
+        user: userPage,
+        product: productPage,
+      });
+    }, [userPage, productPage]);
 
     return (
       <Container w={"100vw"} maxW="4xl" centerContent>
@@ -40,15 +64,15 @@ export default function Router() {
                       <GridItem rowSpan={2}>
                         <CardList
                           type="users"
-                          page={Number(user) === 0 ? 1 : Number(user)}
-                          setCurrentPage={setPageFromCardList}
+                          page={userPage}
+                          setCurrentPage={setUserPageFromCardList}
                         />
                       </GridItem>
                       <GridItem rowSpan={1}>
                         <CardList
                           type="products"
-                          page={Number(product) === 0 ? 1 : Number(product)}
-                          setCurrentPage={setPageFromCardList}
+                          page={productPage}
+                          setCurrentPage={setProductPageFromCardList}
                         />
                         <Box mt={4}>
                           <Cart />

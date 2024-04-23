@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Route,
   Routes,
+  useParams,
   useSearchParams,
 } from "react-router-dom";
 
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react";
 
 export default function Router() {
   const Layout = () => {
+    const { action } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
 
     let user = searchParams.get("user") === null
@@ -29,6 +31,7 @@ export default function Router() {
     let product = searchParams.get("product") === null
       ? "1"
       : searchParams.get("product");
+    let query = searchParams.get("q") === null ? "" : searchParams.get("q");
 
     const [userPage, setUserPage] = useState(user !== "1" ? Number(user) : 1);
     const [productPage, setProductPage] = useState(
@@ -42,10 +45,16 @@ export default function Router() {
     console.log(userPage, productPage);
 
     useEffect(() => {
-      setSearchParams({
-        user: userPage,
-        product: productPage,
-      });
+      if (action !== "search") {
+        setSearchParams({
+          user: userPage,
+          product: productPage,
+        });
+      } else {
+        setSearchParams({
+          q: query,
+        });
+      }
     }, [userPage, productPage]);
 
     return (
@@ -66,6 +75,7 @@ export default function Router() {
                           type="users"
                           page={userPage}
                           setCurrentPage={setUserPageFromCardList}
+                          query={query}
                         />
                       </GridItem>
                       <GridItem rowSpan={1}>
@@ -94,6 +104,7 @@ export default function Router() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />} />
+          <Route path="/:action" element={<Layout />} />
           <Route path="/product/:id" element={<ProductCard />} />
         </Routes>
       </BrowserRouter>

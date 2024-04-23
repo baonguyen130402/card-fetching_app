@@ -1,14 +1,13 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
-import { DefaultValueContext } from "../lib/contexts/DefaultValueContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 
 export const CardRender = (props) => {
-  const { data, type, cartData } = props;
+  const { data, type, cartData, query } = props;
 
   const [allCartData, setAllCartData] = useState({});
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
@@ -17,7 +16,6 @@ export const CardRender = (props) => {
   const { userId, setUserId } = useContext(UserIdContext);
   const { productId, setProductId } = useContext(ProductIdContext);
   const { setProductData } = useContext(ProductCartContext);
-  const { defaultValueCard } = useContext(DefaultValueContext);
 
   const property = {
     id: data.id,
@@ -48,7 +46,7 @@ export const CardRender = (props) => {
       if (cartCurrent?.length !== 0 && userId !== "") {
         sessionStorage.setItem(
           "cartCurrent",
-          JSON.stringify([""]),
+          JSON.stringify([]),
         );
       }
     }
@@ -60,22 +58,27 @@ export const CardRender = (props) => {
     }
   };
 
-  const users = JSON.parse(sessionStorage.getItem("users"));
-
-  const test = {};
-  test[userId] = defaultValueCard;
-
-  // console.log(test);
-
   useEffect(() => {
-    const shouldFocusUserId = sessionStorage.getItem("focus-user-id");
+    let shouldFocusUserId;
 
-    setShouldFocusThisUser(
-      property.id === JSON.parse(shouldFocusUserId),
-    );
+    if (query === "") {
+      shouldFocusUserId = sessionStorage.getItem("focus-user-id");
 
-    if (userId !== undefined) {
-      getProductData(userId);
+      setShouldFocusThisUser(
+        property.id === JSON.parse(shouldFocusUserId),
+      );
+
+      if (userId !== undefined) {
+        getProductData(userId);
+      }
+    } else {
+      setShouldFocusThisUser(true);
+
+      if (type === "users") {
+        if (userId !== undefined) {
+          getProductData(userId);
+        }
+      }
     }
   }, [userId, data]);
 

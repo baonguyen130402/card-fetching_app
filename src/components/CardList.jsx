@@ -5,6 +5,7 @@ import debounce from "lodash.debounce";
 import {
   Box,
   ButtonGroup,
+  filter,
   Flex,
   IconButton,
   Input,
@@ -16,16 +17,14 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
-import { useSearchParams } from "react-router-dom";
 
 export const CardList = (prop) => {
-  const { type, page, setCurrentPage } = prop;
+  const { type, page, setCurrentPage, query } = prop;
   const toast = useToast();
 
   const cardRendered = useRef(0);
   const currentPage = useRef(page);
 
-  const [query, setQuery] = useState("");
   const [data, setData] = useState([{}]);
   const [cartData, setCartData] = useState([{}]);
 
@@ -33,12 +32,19 @@ export const CardList = (prop) => {
   const carts = JSON.parse(sessionStorage.getItem("carts"));
   const products = JSON.parse(sessionStorage.getItem("products"));
 
-  const filteredItemUser = JSON.parse(
-    sessionStorage.getItem("filteredItemUser"),
-  );
-  const filteredItemProduct = JSON.parse(
-    sessionStorage.getItem("filteredItemProduct"),
-  );
+  const filteredItemUser =
+    sessionStorage.getItem("filteredItemUser") !== "undefined"
+      ? JSON.parse(
+        sessionStorage.getItem("filteredItemUser"),
+      )
+      : [];
+
+  const filteredItemProduct =
+    sessionStorage.getItem("filteredItemProduct") !== "undefined"
+      ? JSON.parse(
+        sessionStorage.getItem("filteredItemProduct"),
+      )
+      : [];
 
   const lastQueryUser = sessionStorage.getItem("lastQueryUser");
   const lastQueryProduct = sessionStorage.getItem("lastQueryProduct");
@@ -64,17 +70,29 @@ export const CardList = (prop) => {
       dataGetFromEndpoint = await axios.get(endpoint);
 
       if (type === "users") {
-        dataGetFromEndpoint.data?.users?.forEach((user) => {
+        if (query === "") {
+          dataGetFromEndpoint.data?.users?.forEach((user) => {
+            d.push({
+              id: user.id,
+              name: `${user.firstName} ${user.lastName}`,
+              image: user.image,
+            });
+          });
+
+          setData(d);
+        } else {
+          const { data } = await axios.get(
+            `https://dummyjson.com/users/search?q=${query}`,
+          );
+
+          const user = data.users[0];
+
           d.push({
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
             image: user.image,
           });
-        });
 
-        if (lastQueryUser !== "null") {
-          setData(filteredItemUser);
-        } else {
           setData(d);
         }
       }
@@ -88,29 +106,35 @@ export const CardList = (prop) => {
           });
         });
 
-        if (lastQueryProduct !== "null") {
-          setData(filteredItemProduct);
-        } else {
-          setData(d);
-        }
+        console.log(d);
+
+        setData(d);
       }
 
       cardRendered.current = 20 * (page - 1);
     } else {
       cardRendered.current = 20 * (page - 1);
+
       if (type === "users") {
-        dataRender = lastQueryUser !== "null"
-          ? filteredItemUser
-          : users?.slice(cardRendered.current, cardRendered.current + 20);
+        if (query === "") {
+          dataRender = lastQueryUser !== null
+            ? filteredItemUser
+            : users?.slice(cardRendered.current, cardRendered.current + 20);
+        } else {
+          dataRender = users?.filter((user) => user.name.includes(query));
+        }
+
+        setData(dataRender);
       }
 
       if (type === "products") {
-        dataRender = lastQueryProduct !== "null"
+        console.log(lastQueryProduct);
+        dataRender = lastQueryProduct !== null
           ? filteredItemProduct
           : products?.slice(cardRendered.current, cardRendered.current + 20);
-      }
 
-      setData(dataRender);
+        setData(dataRender);
+      }
     }
   };
 
@@ -153,7 +177,6 @@ export const CardList = (prop) => {
     } else {
       setCartData(carts);
     }
-    console.log("--- fetchAllDataCart");
   };
 
   useEffect(() => {
@@ -260,6 +283,8 @@ export const CardList = (prop) => {
       } else {
         setData(d);
       }
+
+      sessionStorage.setItem("filteredItemUser", JSON.stringify(d));
     }
 
     if (type === "products") {
@@ -272,13 +297,17 @@ export const CardList = (prop) => {
       } else {
         setData(d);
       }
+
+      sessionStorage.setItem("filteredItemProduct", JSON.stringify(d));
     }
   };
 
-  useEffect(() => {
+  const updateQuery = (e) => {
+    const query = e?.target?.value;
+
     if (type === "users") {
       if (query.length === 0 && lastQueryUser?.length !== 0) {
-        sessionStorage.setItem("lastQueryUser", lastQueryUser);
+        sessionStorage.setItem("lastQueryUser", "");
       } else {
         sessionStorage.setItem("lastQueryUser", query);
       }
@@ -286,16 +315,14 @@ export const CardList = (prop) => {
 
     if (type === "products") {
       if (query.length === 0 && lastQueryProduct?.length !== 0) {
-        sessionStorage.setItem("lastQueryProduct", lastQueryProduct);
+        sessionStorage.setItem("lastQueryProduct", "");
       } else {
         sessionStorage.setItem("lastQueryProduct", query);
       }
     }
 
     getFilteredItems(query);
-  }, [query]);
-
-  const updateQuery = (e) => setQuery(e?.target?.value);
+  };
   const debounceOnChange = debounce(updateQuery, 200);
 
   return (
@@ -361,6 +388,7 @@ export const CardList = (prop) => {
                   type="users"
                   data={dataRender}
                   cartData={cartData}
+                  query={query}
                 />
               ))}
             </SimpleGrid>

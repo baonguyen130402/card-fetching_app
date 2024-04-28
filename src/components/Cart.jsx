@@ -26,7 +26,6 @@ import {
 import { SearchIcon } from "@chakra-ui/icons";
 
 export const Cart = () => {
-  const [query, setQuery] = useState("");
   const [shouldReverse, setShouldReverse] = useState(false);
 
   const [data, setData] = useState([{}]);
@@ -37,8 +36,8 @@ export const Cart = () => {
     sessionStorage.getItem("currentData"),
   );
 
-  const { userId, setUserId } = useContext(UserIdContext);
-  const { productData, setProductData } = useContext(ProductCartContext);
+  const { userId } = useContext(UserIdContext);
+  const { productData } = useContext(ProductCartContext);
 
   let cartTableKeys;
 

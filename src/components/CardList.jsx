@@ -5,7 +5,6 @@ import debounce from "lodash.debounce";
 import {
   Box,
   ButtonGroup,
-  filter,
   Flex,
   IconButton,
   Input,
@@ -19,7 +18,7 @@ import {
 import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
 
 export const CardList = (prop) => {
-  const { type, page, setCurrentPage, query } = prop;
+  const { type, page, setCurrentPage, setSearch, search } = prop;
   const toast = useToast();
 
   const cardRendered = useRef(0);
@@ -32,34 +31,41 @@ export const CardList = (prop) => {
   const carts = JSON.parse(sessionStorage.getItem("carts"));
   const products = JSON.parse(sessionStorage.getItem("products"));
 
-  const filteredItemUser =
-    sessionStorage.getItem("filteredItemUser") !== "undefined"
-      ? JSON.parse(
-        sessionStorage.getItem("filteredItemUser"),
-      )
-      : [];
+  let filteredData, currentData, initialData;
 
-  const filteredItemProduct =
-    sessionStorage.getItem("filteredItemProduct") !== "undefined"
-      ? JSON.parse(
-        sessionStorage.getItem("filteredItemProduct"),
-      )
-      : [];
-
-  const lastQueryUser = sessionStorage.getItem("lastQueryUser");
-  const lastQueryProduct = sessionStorage.getItem("lastQueryProduct");
-
-  const initializeData = (type) => {
-    if (type === "users") {
-      setData(users.slice(cardRendered.current, cardRendered.current + 20));
-    }
-
-    if (type === "products") {
+  if (type === "users") {
+    filteredData = (value) =>
+      users?.filter((user) => user.name.includes(value));
+    currentData = users?.slice(
+      cardRendered.current,
+      cardRendered.current + 20,
+    );
+    initialData = () => {
       setData(
-        products.slice(cardRendered.current, cardRendered.current + 20),
+        users?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
       );
-    }
-  };
+    };
+  } else {
+    filteredData = (value) =>
+      products?.filter((product) => product.name.includes(value));
+    currentData = products?.slice(
+      cardRendered.current,
+      cardRendered.current + 20,
+    );
+    initialData = () => {
+      setData(
+        products?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
+    };
+  }
+
+  const initializeData = () => initialData();
 
   const getDataOnFirstRender = async (endpoint) => {
     let dataRender;
@@ -69,8 +75,8 @@ export const CardList = (prop) => {
       const d = [];
       dataGetFromEndpoint = await axios.get(endpoint);
 
-      if (type === "users") {
-        if (query === "") {
+      if (search === "") {
+        if (type === "users") {
           dataGetFromEndpoint.data?.users?.forEach((user) => {
             d.push({
               id: user.id,
@@ -78,13 +84,21 @@ export const CardList = (prop) => {
               image: user.image,
             });
           });
-
-          setData(d);
         } else {
-          const { data } = await axios.get(
-            `https://dummyjson.com/users/search?q=${query}`,
-          );
+          dataGetFromEndpoint.data?.products?.forEach((product) => {
+            d.push({
+              id: product.id,
+              name: product.title,
+              image: product.images[0],
+            });
+          });
+        }
+      } else {
+        const { data } = await axios.get(
+          `https://dummyjson.com/${type}/search?q=${search}`,
+        );
 
+        if (type === "users") {
           const user = data.users[0];
 
           d.push({
@@ -92,49 +106,29 @@ export const CardList = (prop) => {
             name: `${user.firstName} ${user.lastName}`,
             image: user.image,
           });
+        } else {
+          const product = data.products[0];
 
-          setData(d);
-        }
-      }
-
-      if (type === "products") {
-        dataGetFromEndpoint.data?.products?.forEach((product) => {
           d.push({
             id: product.id,
             name: product.title,
             image: product.images[0],
           });
-        });
-
-        console.log(d);
-
-        setData(d);
+        }
       }
 
+      setData(d);
       cardRendered.current = 20 * (page - 1);
     } else {
       cardRendered.current = 20 * (page - 1);
 
-      if (type === "users") {
-        if (query === "") {
-          dataRender = lastQueryUser !== null
-            ? filteredItemUser
-            : users?.slice(cardRendered.current, cardRendered.current + 20);
-        } else {
-          dataRender = users?.filter((user) => user.name.includes(query));
-        }
-
-        setData(dataRender);
+      if (search === "") {
+        dataRender = currentData;
+      } else {
+        dataRender = filteredData(search);
       }
 
-      if (type === "products") {
-        console.log(lastQueryProduct);
-        dataRender = lastQueryProduct !== null
-          ? filteredItemProduct
-          : products?.slice(cardRendered.current, cardRendered.current + 20);
-
-        setData(dataRender);
-      }
+      setData(dataRender);
     }
   };
 
@@ -151,11 +145,7 @@ export const CardList = (prop) => {
           image: user.image,
         });
       });
-
-      sessionStorage.setItem("users", JSON.stringify(d));
-    }
-
-    if (type === "products") {
+    } else {
       dataGetFromEndpoint.data.products.forEach((product) => {
         d.push({
           id: product.id,
@@ -163,9 +153,9 @@ export const CardList = (prop) => {
           image: product.images[0],
         });
       });
-
-      sessionStorage.setItem("products", JSON.stringify(d));
     }
+
+    sessionStorage.setItem(`${type}`, JSON.stringify(d));
   };
 
   const fetchAllDataCart = async (endpoint) => {
@@ -178,20 +168,6 @@ export const CardList = (prop) => {
       setCartData(carts);
     }
   };
-
-  useEffect(() => {
-    if (lastQueryUser?.length !== 0) {
-      if (type === "users") {
-        getFilteredItems(lastQueryUser);
-      }
-    }
-
-    if (lastQueryProduct?.length !== 0) {
-      if (type === "products") {
-        getFilteredItems(lastQueryProduct);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -230,18 +206,12 @@ export const CardList = (prop) => {
       });
     }
 
-    if (type === "users") {
-      if (currentPage.current > 1) {
-        currentPage.current -= 1;
-      }
-      setCurrentPage(currentPage.current);
-    } else {
-      if (currentPage.current > 1) {
-        currentPage.current -= 1;
-      }
+    if (currentPage.current > 1) {
+      currentPage.current -= 1;
       setCurrentPage(currentPage.current);
     }
-    initializeData(type);
+
+    initializeData();
   };
 
   const handleClickNext = () => {
@@ -257,72 +227,31 @@ export const CardList = (prop) => {
       });
     }
 
-    if (type === "users") {
-      if (currentPage.current < 5) {
-        currentPage.current += 1;
-      }
-      setCurrentPage(currentPage.current);
-    } else {
-      if (currentPage.current < 5) {
-        currentPage.current += 1;
-      }
+    if (currentPage.current < 5) {
+      currentPage.current += 1;
       setCurrentPage(currentPage.current);
     }
 
-    initializeData(type);
+    initializeData();
   };
 
   const getFilteredItems = (query) => {
-    if (type === "users") {
-      const d = users?.filter((user) => user.name.includes(query));
+    const d = filteredData(query);
 
-      if (query?.length === 0) {
-        setData(
-          users?.slice(cardRendered.current, cardRendered.current + 20),
-        );
-      } else {
-        setData(d);
-      }
-
-      sessionStorage.setItem("filteredItemUser", JSON.stringify(d));
-    }
-
-    if (type === "products") {
-      const d = products?.filter((product) => product.name.includes(query));
-
-      if (query?.length === 0) {
-        setData(
-          products?.slice(cardRendered.current, cardRendered.current + 20),
-        );
-      } else {
-        setData(d);
-      }
-
-      sessionStorage.setItem("filteredItemProduct", JSON.stringify(d));
+    if (query?.length === 0) {
+      setData(currentData);
+    } else {
+      setData(d);
     }
   };
 
   const updateQuery = (e) => {
     const query = e?.target?.value;
 
-    if (type === "users") {
-      if (query.length === 0 && lastQueryUser?.length !== 0) {
-        sessionStorage.setItem("lastQueryUser", "");
-      } else {
-        sessionStorage.setItem("lastQueryUser", query);
-      }
-    }
-
-    if (type === "products") {
-      if (query.length === 0 && lastQueryProduct?.length !== 0) {
-        sessionStorage.setItem("lastQueryProduct", "");
-      } else {
-        sessionStorage.setItem("lastQueryProduct", query);
-      }
-    }
-
+    setSearch(query);
     getFilteredItems(query);
   };
+
   const debounceOnChange = debounce(updateQuery, 200);
 
   return (
@@ -352,11 +281,7 @@ export const CardList = (prop) => {
           <Input
             variant="filled"
             placeholder="Name..."
-            defaultValue={type === "products"
-              ? lastQueryProduct === "null" ? "" : lastQueryProduct
-              : lastQueryUser === "null"
-                ? ""
-                : lastQueryUser}
+            defaultValue={search}
             onChange={debounceOnChange}
           />
           <InputRightElement>
@@ -388,7 +313,7 @@ export const CardList = (prop) => {
                   type="users"
                   data={dataRender}
                   cartData={cartData}
-                  query={query}
+                  dataLength={data.length}
                 />
               ))}
             </SimpleGrid>

@@ -7,15 +7,24 @@ import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 
 export const CardRender = (props) => {
-  const { data, type, cartData, query } = props;
+  const { data, type, cartData, dataLength } = props;
 
-  const [allCartData, setAllCartData] = useState({});
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
   const [shouldFocusThisProduct, setShouldFocusThisProduct] = useState(false);
 
-  const { userId, setUserId } = useContext(UserIdContext);
-  const { productId, setProductId } = useContext(ProductIdContext);
   const { setProductData } = useContext(ProductCartContext);
+
+  let itemId, setItemId;
+
+  if (type === "users") {
+    const { userId, setUserId } = useContext(UserIdContext);
+    itemId = userId;
+    setItemId = (value) => setUserId(value);
+  } else {
+    const { productId, setProductId } = useContext(ProductIdContext);
+    itemId = productId;
+    setItemId = (value) => setProductId(value);
+  }
 
   const property = {
     id: data.id,
@@ -51,55 +60,43 @@ export const CardRender = (props) => {
       }
     }
 
-    if (cartCurrent?.length !== 0) {
+    if (cartCurrent !== null) {
       setProductData(cartCurrent);
     } else {
-      setProductData(allCartData[userId]);
+      setProductData(d[userId]);
     }
   };
 
   useEffect(() => {
-    let shouldFocusUserId;
+    const shouldFocusThisItem = sessionStorage.getItem(`focus-${type}-id`);
 
-    if (query === "") {
-      shouldFocusUserId = sessionStorage.getItem("focus-user-id");
-
-      setShouldFocusThisUser(
-        property.id === JSON.parse(shouldFocusUserId),
+    if (type === "products") {
+      setShouldFocusThisProduct(
+        property.id === JSON.parse(shouldFocusThisItem),
       );
-
-      if (userId !== undefined) {
-        getProductData(userId);
-      }
     } else {
-      setShouldFocusThisUser(true);
+      if (dataLength !== 1) {
+        setShouldFocusThisUser(
+          property.id === JSON.parse(shouldFocusThisItem),
+        );
 
-      if (type === "users") {
-        if (userId !== undefined) {
-          getProductData(userId);
+        if (itemId !== undefined) {
+          getProductData(itemId);
+        }
+      } else {
+        setShouldFocusThisUser(true);
+
+        if (property.id !== undefined) {
+          getProductData(property.id);
         }
       }
     }
-  }, [userId, data]);
-
-  useEffect(() => {
-    const shouldFocusProductId = sessionStorage.getItem("focus-product-id");
-
-    setShouldFocusThisProduct(
-      property.id === JSON.parse(shouldFocusProductId),
-    );
-  }, [productId, data]);
+  }, [itemId, data, property.id]);
 
   const handleClick = (type) => {
-    if (type === "products") {
-      sessionStorage.setItem("focus-product-id", property.id);
-      setProductId(property.id);
-    }
+    sessionStorage.setItem(`focus-${type}-id`, property.id);
 
-    if (type === "users") {
-      sessionStorage.setItem("focus-user-id", property.id);
-      setUserId(property.id);
-    }
+    setItemId(property.id);
 
     sessionStorage.removeItem("lastQuery");
   };
@@ -115,7 +112,7 @@ export const CardRender = (props) => {
             rounded="md"
             onClick={() => {
               handleClick(props.type);
-              getProductData(userId);
+              getProductData();
             }}
           >
             <CardBody>

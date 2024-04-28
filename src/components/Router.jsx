@@ -25,37 +25,42 @@ export default function Router() {
     const { action } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    let user = searchParams.get("user") === null
+    let userP = searchParams.get("userPage") === "0"
       ? "1"
-      : searchParams.get("user");
-    let product = searchParams.get("product") === null
+      : searchParams.get("userPage");
+    let productP = searchParams.get("productPage") === "0"
       ? "1"
-      : searchParams.get("product");
-    let query = searchParams.get("q") === null ? "" : searchParams.get("q");
+      : searchParams.get("productPage");
+    let userS = searchParams.get("userSearch") !== ""
+      ? searchParams.get("userSearch")
+      : "";
+    let productS = searchParams.get("productSearch") !== ""
+      ? searchParams.get("productSearch")
+      : "";
 
-    const [userPage, setUserPage] = useState(user !== "1" ? Number(user) : 1);
+    const [userPage, setUserPage] = useState(userP !== "1" ? Number(userP) : 1);
     const [productPage, setProductPage] = useState(
-      product !== "1" ? Number(product) : 1,
+      productP !== "1" ? Number(productP) : 1,
     );
+    const [userSearch, setUserSearch] = useState(userS);
+    const [productSearch, setProductSearch] = useState(productS);
 
     const setUserPageFromCardList = (currentPage) => setUserPage(currentPage);
     const setProductPageFromCardList = (currentPage) =>
       setProductPage(currentPage);
-
-    console.log(userPage, productPage);
+    const setUserSearchFromCardList = (search) => setUserSearch(search);
+    const setProductSearchFromCardList = (search) => setProductSearch(search);
 
     useEffect(() => {
       if (action !== "search") {
         setSearchParams({
-          user: userPage,
-          product: productPage,
-        });
-      } else {
-        setSearchParams({
-          q: query,
+          userPage: userPage,
+          productPage: productPage,
+          userSearch: userSearch,
+          productSearch: productSearch,
         });
       }
-    }, [userPage, productPage]);
+    }, [userPage, productPage, userSearch, productSearch]);
 
     return (
       <Container w={"100vw"} maxW="4xl" centerContent>
@@ -74,15 +79,18 @@ export default function Router() {
                         <CardList
                           type="users"
                           page={userPage}
+                          search={userSearch}
                           setCurrentPage={setUserPageFromCardList}
-                          query={query}
+                          setSearch={setUserSearchFromCardList}
                         />
                       </GridItem>
                       <GridItem rowSpan={1}>
                         <CardList
                           type="products"
                           page={productPage}
+                          search={productSearch}
                           setCurrentPage={setProductPageFromCardList}
+                          setSearch={setProductSearchFromCardList}
                         />
                         <Box mt={4}>
                           <Cart />

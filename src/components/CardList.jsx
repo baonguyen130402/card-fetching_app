@@ -41,12 +41,14 @@ export const CardList = (prop) => {
       cardRendered.current + 20,
     );
     initialData = () => {
-      setData(
-        users?.slice(
-          cardRendered.current,
-          cardRendered.current + 20,
-        ),
-      );
+      if (users !== null) {
+        setData(
+          users?.slice(
+            cardRendered.current,
+            cardRendered.current + 20,
+          ),
+        );
+      }
     };
   } else {
     filteredData = (value) =>
@@ -56,12 +58,14 @@ export const CardList = (prop) => {
       cardRendered.current + 20,
     );
     initialData = () => {
-      setData(
-        products?.slice(
-          cardRendered.current,
-          cardRendered.current + 20,
-        ),
-      );
+      if (products !== null) {
+        setData(
+          products?.slice(
+            cardRendered.current,
+            cardRendered.current + 20,
+          ),
+        );
+      }
     };
   }
 
@@ -208,8 +212,8 @@ export const CardList = (prop) => {
 
     if (currentPage.current > 1) {
       currentPage.current -= 1;
-      setCurrentPage(currentPage.current);
     }
+    setCurrentPage(currentPage.current);
 
     initializeData();
   };

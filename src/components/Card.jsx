@@ -33,37 +33,43 @@ export const CardRender = (props) => {
   };
 
   const getProductData = (userId) => {
-    const d = {};
-    const userIdHasCart = [];
+    if (type === "users") {
+      const d = {};
+      const userIdHasCart = [];
 
-    const cartCurrent = JSON.parse(
-      sessionStorage.getItem("cartCurrent"),
-    );
-
-    cartData?.forEach((cart) => {
-      userIdHasCart.push(cart.userId);
-
-      d[cart.userId] = cart.products;
-    });
-
-    if (userIdHasCart.includes(userId)) {
-      sessionStorage.setItem(
-        "cartCurrent",
-        JSON.stringify(d[userId]),
+      const cartCurrent = JSON.parse(
+        sessionStorage.getItem("cartCurrent"),
       );
-    } else {
-      if (cartCurrent?.length !== 0 && userId !== "") {
+
+      cartData?.forEach((cart) => {
+        userIdHasCart.push(cart.userId);
+
+        d[cart.userId] = cart.products;
+      });
+
+      if (userIdHasCart.includes(userId)) {
         sessionStorage.setItem(
           "cartCurrent",
-          JSON.stringify([]),
+          JSON.stringify(d[userId]),
         );
+      } else {
+        if (cartCurrent?.length !== 0 && userId !== "") {
+          sessionStorage.setItem(
+            "cartCurrent",
+            JSON.stringify([]),
+          );
+        }
       }
-    }
 
-    if (cartCurrent !== null) {
-      setProductData(cartCurrent);
-    } else {
-      setProductData(d[userId]);
+      if (dataLength === 1) {
+        setProductData(d[userId]);
+      } else {
+        if (cartCurrent !== null) {
+          setProductData(cartCurrent);
+        } else {
+          setProductData(d[userId]);
+        }
+      }
     }
   };
 
@@ -85,19 +91,19 @@ export const CardRender = (props) => {
         }
       } else {
         setShouldFocusThisUser(true);
+        sessionStorage.setItem(`focus-${type}-id`, property.id);
 
         if (property.id !== undefined) {
           getProductData(property.id);
         }
       }
     }
-  }, [itemId, data, property.id]);
+  }, [itemId, property.id]);
 
   const handleClick = (type) => {
     sessionStorage.setItem(`focus-${type}-id`, property.id);
 
     setItemId(property.id);
-
     sessionStorage.removeItem("lastQuery");
   };
 
@@ -138,7 +144,6 @@ export const CardRender = (props) => {
             rounded="md"
             onClick={() => {
               handleClick(props.type);
-              getProductData();
             }}
           >
             <CardBody>

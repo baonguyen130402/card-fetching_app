@@ -41,14 +41,12 @@ export const CardList = (prop) => {
       cardRendered.current + 20,
     );
     initialData = () => {
-      if (users !== null) {
-        setData(
-          users?.slice(
-            cardRendered.current,
-            cardRendered.current + 20,
-          ),
-        );
-      }
+      setData(
+        users?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
     };
   } else {
     filteredData = (value) =>
@@ -58,14 +56,12 @@ export const CardList = (prop) => {
       cardRendered.current + 20,
     );
     initialData = () => {
-      if (products !== null) {
-        setData(
-          products?.slice(
-            cardRendered.current,
-            cardRendered.current + 20,
-          ),
-        );
-      }
+      setData(
+        products?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
     };
   }
 
@@ -189,7 +185,7 @@ export const CardList = (prop) => {
         console.log(err);
       }
     })();
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     (async () => {
@@ -212,8 +208,8 @@ export const CardList = (prop) => {
 
     if (currentPage.current > 1) {
       currentPage.current -= 1;
+      setCurrentPage(currentPage.current);
     }
-    setCurrentPage(currentPage.current);
 
     initializeData();
   };

@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import debounce from "lodash.debounce";
 
@@ -8,10 +8,16 @@ import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import {
+  Button,
   Center,
   Input,
   InputGroup,
   InputRightElement,
+  Modal,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   Stack,
   Table,
   TableContainer,
@@ -21,15 +27,23 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from "@chakra-ui/react";
 
 import { SearchIcon } from "@chakra-ui/icons";
 
-export const Cart = () => {
-  const [shouldReverse, setShouldReverse] = useState(false);
+export const Cart = (props) => {
+  const { search, setSearch } = props;
+
+  const navigate = useNavigate();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [data, setData] = useState([{}]);
   const [dataCard, setDataCard] = useState([{}]);
+  const [shouldReverse, setShouldReverse] = useState(false);
+
+  const currentIndex = useRef(0);
 
   const lastQuery = sessionStorage.getItem("lastQuery");
   const currentData = JSON.parse(
@@ -106,7 +120,6 @@ export const Cart = () => {
     }
 
     getFilteredItems(query);
-    setQuery(query);
   };
 
   const debounceOnChange = debounce(updateQuery, 200);
@@ -139,6 +152,22 @@ export const Cart = () => {
 
     setData(d);
     setShouldReverse(!shouldReverse);
+  };
+
+  const handleOpen = (index) => {
+    currentIndex.current = index;
+    onOpen();
+  };
+
+  const openInNewPage = () => {
+    const index = currentIndex.current;
+    navigate(`/product/${index}`, { state: dataCard });
+  };
+
+  const openInProductView = () => {
+    const index = currentIndex.current;
+    onClose()
+    setSearch(dataCard[index].name)
   };
 
   return (
@@ -187,14 +216,12 @@ export const Cart = () => {
                         maxW="20px"
                         key={idx}
                       >
-                        <Text noOfLines={1}>
-                          <Link
-                            to={`/product/${index}`}
-                            state={dataCard}
-                            className="text-white cursor-pointer"
-                          >
-                            {el}
-                          </Link>
+                        <Text
+                          noOfLines={1}
+                          _hover={{ cursor: "pointer" }}
+                          onClick={() => handleOpen(index)}
+                        >
+                          {el}
                         </Text>
                       </Td>
                     ))}
@@ -209,6 +236,26 @@ export const Cart = () => {
             <Text fontSize="24px">Please select user to show cart</Text>
           </Center>
         )}
+
+      <Modal
+        isCentered
+        onClose={onClose}
+        isOpen={isOpen}
+        motionPreset="slideInBottom"
+      >
+        <ModalContent>
+          <ModalHeader>View this product</ModalHeader>
+          <ModalCloseButton />
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={openInNewPage}>
+              In new page
+            </Button>
+            <Button colorScheme="blue" onClick={openInProductView}>
+              In product view
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Stack>
   );
 };

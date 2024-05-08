@@ -8,7 +8,7 @@ export const App = () => {
 
   return (
     <Box bg="mainBg">
-      <Router />;
+      <Router />
     </Box>
   );
 };

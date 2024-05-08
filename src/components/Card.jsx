@@ -61,14 +61,10 @@ export const CardRender = (props) => {
         }
       }
 
-      if (dataLength === 1) {
-        setProductData(d[userId]);
+      if (cartCurrent !== null) {
+        setProductData(cartCurrent);
       } else {
-        if (cartCurrent !== null) {
-          setProductData(cartCurrent);
-        } else {
-          setProductData(d[userId]);
-        }
+        setProductData(d[userId]);
       }
     }
   };
@@ -91,19 +87,19 @@ export const CardRender = (props) => {
         }
       } else {
         setShouldFocusThisUser(true);
-        sessionStorage.setItem(`focus-${type}-id`, property.id);
 
         if (property.id !== undefined) {
           getProductData(property.id);
         }
       }
     }
-  }, [itemId, property.id]);
+  }, [itemId, data, property.id]);
 
   const handleClick = (type) => {
     sessionStorage.setItem(`focus-${type}-id`, property.id);
 
     setItemId(property.id);
+
     sessionStorage.removeItem("lastQuery");
   };
 
@@ -144,6 +140,7 @@ export const CardRender = (props) => {
             rounded="md"
             onClick={() => {
               handleClick(props.type);
+              getProductData();
             }}
           >
             <CardBody>

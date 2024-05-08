@@ -31,10 +31,10 @@ export default function Router() {
     let productP = searchParams.get("productPage") === "0"
       ? "1"
       : searchParams.get("productPage");
-    let userS = searchParams.get("userSearch") !== ""
+    let userS = searchParams.get("userSearch") !== "null"
       ? searchParams.get("userSearch")
       : "";
-    let productS = searchParams.get("productSearch") !== ""
+    let productS = searchParams.get("productSearch") !== "null"
       ? searchParams.get("productSearch")
       : "";
 
@@ -93,7 +93,7 @@ export default function Router() {
                           setSearch={setProductSearchFromCardList}
                         />
                         <Box mt={4}>
-                          <Cart />
+                          <Cart search={productSearch} setSearch={setProductSearchFromCardList} />
                         </Box>
                       </GridItem>
                     </Grid>

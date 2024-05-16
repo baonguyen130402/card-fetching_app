@@ -39,16 +39,20 @@ export const Cart = (props) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [data, setData] = useState([{}]);
+  const [data, setData] = useState([]);
   const [dataCard, setDataCard] = useState([{}]);
+  const [currentData, setCurrentData] = useState([]);
   const [shouldReverse, setShouldReverse] = useState(false);
 
   const currentIndex = useRef(0);
 
   const lastQuery = sessionStorage.getItem("lastQuery");
-  const currentData = JSON.parse(
-    sessionStorage.getItem("currentData"),
-  );
+  // const currentData = JSON.parse(
+  //   sessionStorage.getItem("currentData"),
+  // );
+
+  const users = JSON.parse(sessionStorage.getItem("users"));
+  const currentIdUser = JSON.parse(sessionStorage.getItem("focus-users-id"));
 
   const { userId } = useContext(UserIdContext);
   const { productData } = useContext(ProductCartContext);
@@ -67,7 +71,7 @@ export const Cart = (props) => {
     let products = [];
 
     if (productData?.length !== 0) {
-      products = productData;
+      products = productData[0].products;
     }
 
     const d = [];
@@ -89,26 +93,41 @@ export const Cart = (props) => {
       });
     });
 
-    if (d.length !== 0) {
-      sessionStorage.setItem("currentData", JSON.stringify(d));
+    if (users !== null && d.length !== 0) {
+      users[userId - 1].cart = d;
+      sessionStorage.setItem("users", JSON.stringify(users));
     }
 
-    lastQuery !== null ? getFilteredItems(lastQuery) : setData(d);
+    if (lastQuery !== null) {
+      getFilteredItems(lastQuery);
+    } else {
+      if (users !== null) {
+        const currentCartData = users[currentIdUser - 1]?.cart;
+
+        if (currentCartData !== undefined) {
+          setData(currentCartData);
+        } else {
+          setData(d);
+        }
+      }
+    }
 
     setDataCard(dc);
   };
 
   const getFilteredItems = (q) => {
-    const d = currentData?.filter((item) =>
+    const currentCartData = users[currentIdUser - 1]?.cart;
+
+    const d = currentCartData.filter((item) =>
       item?.name?.toLowerCase().includes(q?.toLowerCase())
     );
 
-    q?.length !== 0 ? setData(d) : setData(currentData);
+    q?.length !== 0 ? setData(d) : setData(currentCartData);
   };
 
   useEffect(() => {
     getData();
-  }, [userId, productData]);
+  }, [productData]);
 
   const updateQuery = (e) => {
     const query = e.target?.value;
@@ -166,8 +185,8 @@ export const Cart = (props) => {
 
   const openInProductView = () => {
     const index = currentIndex.current;
-    onClose()
-    setSearch(dataCard[index].name)
+    onClose();
+    setSearch(dataCard[index].name);
   };
 
   return (
@@ -187,14 +206,20 @@ export const Cart = (props) => {
       </Stack>
       {data.length !== 0
         ? (
-          <TableContainer bg="cartBg" mt={8} size="sm" p={3}>
+          <TableContainer bg="cartBg" mt={8} size="sm">
             <Table size="sm" variant="simple">
               <Thead>
                 <Tr>
-                  {cartTableKeys.map((key, idx) => (
+                  {cartTableKeys?.map((key, idx) => (
                     <Th
                       key={idx}
                       maxW="20px"
+                      fontSize={20}
+                      textColor="#999"
+                      title="Click to sort"
+                      border="inset"
+                      borderColor="#666"
+                      _hover={{ cursor: "pointer" }}
                       onClick={() => {
                         sortData(key);
                       }}
@@ -204,10 +229,11 @@ export const Cart = (props) => {
                   ))}
                 </Tr>
               </Thead>
-              {data.map((product, index) => (
+              {data?.map((product, index) => (
                 <Tbody
                   key={index}
                   className="border"
+                  title="Click to view more"
                 >
                   <Tr>
                     {Object.values(product).map((el, idx) => (
@@ -215,6 +241,8 @@ export const Cart = (props) => {
                       <Td
                         maxW="20px"
                         key={idx}
+                        border="inset"
+                        borderColor="#666"
                       >
                         <Text
                           noOfLines={1}

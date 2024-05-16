@@ -32,17 +32,27 @@ export const CardList = (prop) => {
   let filteredData, currentData, initialData;
 
   const findPageHasSelectedCard = () => {
+    // if (cardId > 0 && cardId <= 20) {
+    //   setCurrentPage(1);
+    // } else if (cardId > 20 && cardId <= 40) {
+    //   setCurrentPage(2);
+    // } else if (cardId > 40 && cardId <= 60) {
+    //   setCurrentPage(3);
+    // } else if (cardId > 60 && cardId <= 80) {
+    //   setCurrentPage(4);
+    // } else if (cardId > 80 && cardId <= 100) {
+    //   setCurrentPage(5);
+    // }
+
     if (cardId > 0 && cardId <= 100) {
-      if (cardId % 20 !== 0) {
-        setCurrentPage(Math.floor(cardId / 20) + 1);
-      } else {
-        setCurrentPage(Math.floor(cardId / 20));
-      }
+      setCurrentPage(Math.floor(cardId / 20))
     }
   };
 
   const renderPageHasSelectedCard = () => {
     cardRendered.current = 20 * (page - 1);
+
+    console.log(users?.slice(60, 80));
 
     setData(
       users?.slice(
@@ -54,7 +64,7 @@ export const CardList = (prop) => {
 
   useEffect(() => {
     findPageHasSelectedCard();
-  }, []);
+  }, [cardId]);
 
   useEffect(() => {
     renderPageHasSelectedCard();
@@ -68,14 +78,12 @@ export const CardList = (prop) => {
       cardRendered.current + 20,
     );
     initialData = () => {
-      if (users !== null) {
-        setData(
-          users?.slice(
-            cardRendered.current,
-            cardRendered.current + 20,
-          ),
-        );
-      }
+      setData(
+        users?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
     };
   } else {
     filteredData = (value) =>
@@ -85,14 +93,12 @@ export const CardList = (prop) => {
       cardRendered.current + 20,
     );
     initialData = () => {
-      if (products !== null) {
-        setData(
-          products?.slice(
-            cardRendered.current,
-            cardRendered.current + 20,
-          ),
-        );
-      }
+      setData(
+        products?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
     };
   }
 
@@ -204,16 +210,8 @@ export const CardList = (prop) => {
   useEffect(() => {
     (async () => {
       try {
-        let correctPage;
-        
-        if (cardId % 20 === 0) {
-          correctPage = Math.floor(cardId / 20) - 1;
-        } else {
-          correctPage = Math.floor(cardId / 20);
-        }
-
         await getDataOnFirstRender(
-          `https://dummyjson.com/${type}?limit=20&skip=${correctPage * 20}`,
+          `https://dummyjson.com/${type}?limit=20&skip=${(page - 1) * 20}`,
         );
 
         if (users === null || products === null) {

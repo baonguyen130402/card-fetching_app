@@ -5,9 +5,11 @@ import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
+import axios from "axios";
 
 export const CardRender = (props) => {
-  const { data, type, cartData, dataLength } = props;
+  const users = JSON.parse(sessionStorage.getItem("users"));
+  const { data, type, dataLength, cardId, setCardId } = props;
 
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
   const [shouldFocusThisProduct, setShouldFocusThisProduct] = useState(false);
@@ -32,40 +34,16 @@ export const CardRender = (props) => {
     name: data.name,
   };
 
-  const getProductData = (userId) => {
+  useEffect(() => {
+    sessionStorage.setItem(`focus-${type}-id`, Number(cardId));
+  }, []);
+
+  const getProductData = async (endpoint) => {
     if (type === "users") {
-      const d = {};
-      const userIdHasCart = [];
+      const dataGetFromEndPoint = await axios.get(endpoint);
+      const d = dataGetFromEndPoint.data.carts;
 
-      const cartCurrent = JSON.parse(
-        sessionStorage.getItem("cartCurrent"),
-      );
-
-      cartData?.forEach((cart) => {
-        userIdHasCart.push(cart.userId);
-
-        d[cart.userId] = cart.products;
-      });
-
-      if (userIdHasCart.includes(userId)) {
-        sessionStorage.setItem(
-          "cartCurrent",
-          JSON.stringify(d[userId]),
-        );
-      } else {
-        if (cartCurrent?.length !== 0 && userId !== "") {
-          sessionStorage.setItem(
-            "cartCurrent",
-            JSON.stringify([]),
-          );
-        }
-      }
-
-      if (cartCurrent !== null) {
-        setProductData(cartCurrent);
-      } else {
-        setProductData(d[userId]);
-      }
+      setProductData(d);
     }
   };
 
@@ -81,16 +59,8 @@ export const CardRender = (props) => {
         setShouldFocusThisUser(
           property.id === JSON.parse(shouldFocusThisItem),
         );
-
-        if (itemId !== undefined) {
-          getProductData(itemId);
-        }
       } else {
         setShouldFocusThisUser(true);
-
-        if (property.id !== undefined) {
-          getProductData(property.id);
-        }
       }
     }
   }, [itemId, data, property.id]);
@@ -98,7 +68,10 @@ export const CardRender = (props) => {
   const handleClick = (type) => {
     sessionStorage.setItem(`focus-${type}-id`, property.id);
 
-    setItemId(property.id);
+    if (property !== undefined) {
+      setCardId(property.id);
+      setItemId(property.id);
+    }
 
     sessionStorage.removeItem("lastQuery");
   };
@@ -114,7 +87,6 @@ export const CardRender = (props) => {
             rounded="md"
             onClick={() => {
               handleClick(props.type);
-              getProductData();
             }}
           >
             <CardBody>
@@ -138,9 +110,11 @@ export const CardRender = (props) => {
           <Card
             bg="cardBg"
             rounded="md"
-            onClick={() => {
+            onClick={async () => {
               handleClick(props.type);
-              getProductData();
+              await getProductData(
+                `https:dummyjson.com/users/${property.id}/carts`,
+              );
             }}
           >
             <CardBody>

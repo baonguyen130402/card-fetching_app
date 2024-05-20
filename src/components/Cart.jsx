@@ -1,10 +1,9 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import debounce from "lodash.debounce";
 
-import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import {
@@ -34,6 +33,7 @@ import { SearchIcon } from "@chakra-ui/icons";
 
 export const Cart = (props) => {
   const { search, setSearch } = props;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const navigate = useNavigate();
 
@@ -41,20 +41,17 @@ export const Cart = (props) => {
 
   const [data, setData] = useState([]);
   const [dataCard, setDataCard] = useState([{}]);
-  const [currentData, setCurrentData] = useState([]);
   const [shouldReverse, setShouldReverse] = useState(false);
 
   const currentIndex = useRef(0);
 
   const lastQuery = sessionStorage.getItem("lastQuery");
-  // const currentData = JSON.parse(
-  //   sessionStorage.getItem("currentData"),
-  // );
 
   const users = JSON.parse(sessionStorage.getItem("users"));
   const currentIdUser = JSON.parse(sessionStorage.getItem("focus-users-id"));
 
-  const { userId } = useContext(UserIdContext);
+  const userId = searchParams.get("userId");
+
   const { productData } = useContext(ProductCartContext);
 
   let cartTableKeys;
@@ -94,7 +91,7 @@ export const Cart = (props) => {
     });
 
     if (users !== null && d.length !== 0) {
-      users[userId - 1].cart = d;
+      users[Number(userId) - 1].cart = d;
       sessionStorage.setItem("users", JSON.stringify(users));
     }
 
@@ -102,9 +99,9 @@ export const Cart = (props) => {
       getFilteredItems(lastQuery);
     } else {
       if (users !== null) {
-        const currentCartData = users[currentIdUser - 1]?.cart;
+        const currentCartData = users[Number(userId) - 1]?.cart;
 
-        if (currentCartData !== undefined) {
+        if (currentCartData?.length !== 0) {
           setData(currentCartData);
         } else {
           setData(d);
@@ -116,7 +113,7 @@ export const Cart = (props) => {
   };
 
   const getFilteredItems = (q) => {
-    const currentCartData = users[currentIdUser - 1]?.cart;
+    const currentCartData = users[Number(userId) - 1]?.cart;
 
     const d = currentCartData.filter((item) =>
       item?.name?.toLowerCase().includes(q?.toLowerCase())
@@ -204,7 +201,7 @@ export const Cart = (props) => {
           </InputRightElement>
         </InputGroup>
       </Stack>
-      {data.length !== 0
+      {data?.length !== 0
         ? (
           <TableContainer bg="cartBg" mt={8} size="sm">
             <Table size="sm" variant="simple">

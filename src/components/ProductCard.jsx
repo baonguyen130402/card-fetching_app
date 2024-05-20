@@ -11,9 +11,9 @@ import {
 export const ProductCard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const params = useParams();
+  const { id } = useParams();
 
-  const product = location.state[params.id];
+  const product = location.state[id];
 
   let boxBg = useColorModeValue("white !important", "#111c44 !important");
   let mainText = useColorModeValue("gray.800", "white");

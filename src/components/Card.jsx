@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
@@ -8,7 +9,6 @@ import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 import axios from "axios";
 
 export const CardRender = (props) => {
-  const users = JSON.parse(sessionStorage.getItem("users"));
   const { data, type, dataLength, cardId, setCardId } = props;
 
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
@@ -19,10 +19,12 @@ export const CardRender = (props) => {
   let itemId, setItemId;
 
   if (type === "users") {
+    // const userId = Number(searchParams.get("userId"));
     const { userId, setUserId } = useContext(UserIdContext);
     itemId = userId;
     setItemId = (value) => setUserId(value);
   } else {
+    // const productId = Number(searchParams.get("productId"));
     const { productId, setProductId } = useContext(ProductIdContext);
     itemId = productId;
     setItemId = (value) => setProductId(value);
@@ -34,18 +36,30 @@ export const CardRender = (props) => {
     name: data.name,
   };
 
-  useEffect(() => {
-    sessionStorage.setItem(`focus-${type}-id`, Number(cardId));
-  }, []);
-
   const getProductData = async (endpoint) => {
     if (type === "users") {
       const dataGetFromEndPoint = await axios.get(endpoint);
       const d = dataGetFromEndPoint.data.carts;
 
+      console.log("run");
+
       setProductData(d);
     }
   };
+
+  useEffect(() => {
+    (async () => {
+      if (cardId !== "") {
+        sessionStorage.setItem(`focus-${type}-id`, Number(cardId));
+
+        if (type === "users") {
+          await getProductData(
+            `https:dummyjson.com/users/${cardId}/carts`,
+          );
+        }
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const shouldFocusThisItem = sessionStorage.getItem(`focus-${type}-id`);
@@ -63,7 +77,7 @@ export const CardRender = (props) => {
         setShouldFocusThisUser(true);
       }
     }
-  }, [itemId, data, property.id]);
+  }, [data, property.id]);
 
   const handleClick = (type) => {
     sessionStorage.setItem(`focus-${type}-id`, property.id);
@@ -82,6 +96,9 @@ export const CardRender = (props) => {
         shouldFocusThisProduct && type === "products"
         ? (
           <Card
+            draggable="true"
+            onDragStart={() => console.log(property.id)}
+            onDragEnd={() => console.log(property.id)}
             bg="cardBgWhenActive"
             boxShadow="lg"
             rounded="md"
@@ -108,6 +125,7 @@ export const CardRender = (props) => {
         )
         : (
           <Card
+            draggable="true"
             bg="cardBg"
             rounded="md"
             onClick={async () => {

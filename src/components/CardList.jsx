@@ -21,8 +21,8 @@ export const CardList = (prop) => {
   const { cardId, type, page, setCurrentPage, setSearch, search, setId } = prop;
 
   const toast = useToast();
-  const cardRendered = useRef(0);
-  const currentPage = useRef(page);
+  const cardRendered = useRef(page - 1);
+  // const currentPage = useRef(page);
 
   const [data, setData] = useState([{}]);
 
@@ -30,35 +30,6 @@ export const CardList = (prop) => {
   const products = JSON.parse(sessionStorage.getItem("products"));
 
   let filteredData, currentData, initialData;
-
-  const findPageHasSelectedCard = () => {
-    if (cardId > 0 && cardId <= 100) {
-      if (cardId % 20 !== 0) {
-        setCurrentPage(Math.floor(cardId / 20) + 1);
-      } else {
-        setCurrentPage(Math.floor(cardId / 20));
-      }
-    }
-  };
-
-  const renderPageHasSelectedCard = () => {
-    cardRendered.current = 20 * (page - 1);
-
-    setData(
-      users?.slice(
-        cardRendered.current,
-        cardRendered.current + 20,
-      ),
-    );
-  };
-
-  useEffect(() => {
-    findPageHasSelectedCard();
-  }, []);
-
-  useEffect(() => {
-    renderPageHasSelectedCard();
-  }, [page]);
 
   if (type === "users") {
     filteredData = (value) =>
@@ -149,7 +120,6 @@ export const CardList = (prop) => {
           });
         }
       }
-
       setData(d);
       cardRendered.current = 20 * (page - 1);
     } else {
@@ -186,6 +156,7 @@ export const CardList = (prop) => {
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
           image: user.image,
+          cart: [],
         });
       });
     } else {
@@ -205,12 +176,14 @@ export const CardList = (prop) => {
     (async () => {
       try {
         let correctPage;
-        
+
         if (cardId % 20 === 0) {
           correctPage = Math.floor(cardId / 20) - 1;
         } else {
           correctPage = Math.floor(cardId / 20);
         }
+
+        correctPage = correctPage === -1 ? page : correctPage;
 
         await getDataOnFirstRender(
           `https://dummyjson.com/${type}?limit=20&skip=${correctPage * 20}`,
@@ -223,7 +196,31 @@ export const CardList = (prop) => {
         console.log(err);
       }
     })();
-  }, [search]);
+  }, [search, cardId, page]);
+
+  const renderPageHasSelectedCard = () => {
+    cardRendered.current = 20 * (page - 1);
+
+    if (type === "users") {
+      setData(
+        users?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
+    } else {
+      setData(
+        products?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
+    }
+  };
+
+  useEffect(() => {
+    renderPageHasSelectedCard();
+  }, []);
 
   const handleClickPrev = () => {
     if (cardRendered.current !== 0) {
@@ -238,9 +235,8 @@ export const CardList = (prop) => {
       });
     }
 
-    if (currentPage.current > 1) {
-      currentPage.current -= 1;
-      setCurrentPage(currentPage.current);
+    if (page > 1) {
+      setCurrentPage(page - 1);
     }
 
     initializeData();
@@ -259,9 +255,8 @@ export const CardList = (prop) => {
       });
     }
 
-    if (currentPage.current < 5) {
-      currentPage.current += 1;
-      setCurrentPage(currentPage.current);
+    if (page < 5) {
+      setCurrentPage(page + 1);
     }
 
     initializeData();
@@ -295,7 +290,7 @@ export const CardList = (prop) => {
         <Spacer />
         <ButtonGroup display="flex" alignItems="center">
           <IconButton
-            variant="none"
+            variant="outline"
             marginRight="2"
             bg="btnBg"
             size="md"

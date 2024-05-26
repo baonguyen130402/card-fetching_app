@@ -188,77 +188,97 @@ export const Cart = (props) => {
 
   return (
     <Stack>
-      <Stack px={16}>
-        <InputGroup>
-          <Input
-            variant="filled"
-            defaultValue={lastQuery === null ? "" : lastQuery}
-            placeholder="Product..."
-            onChange={debounceOnChange}
-          />
-          <InputRightElement>
-            <SearchIcon color="teal" />
-          </InputRightElement>
-        </InputGroup>
-      </Stack>
       {data?.length !== 0
         ? (
-          <TableContainer bg="cartBg" mt={8} size="sm">
-            <Table size="sm" variant="simple">
-              <Thead>
-                <Tr>
-                  {cartTableKeys?.map((key, idx) => (
-                    <Th
-                      key={idx}
-                      maxW="20px"
-                      fontSize={20}
-                      textColor="#999"
-                      title="Click to sort"
-                      border="inset"
-                      borderColor="#666"
-                      _hover={{ cursor: "pointer" }}
-                      onClick={() => {
-                        sortData(key);
-                      }}
-                    >
-                      {key}
-                    </Th>
-                  ))}
-                </Tr>
-              </Thead>
-              {data?.map((product, index) => (
-                <Tbody
-                  key={index}
-                  className="border"
-                  title="Click to view more"
-                >
+          <>
+            <Stack px={16}>
+              <InputGroup>
+                <Input
+                  variant="filled"
+                  defaultValue={lastQuery === null ? "" : lastQuery}
+                  placeholder="Product..."
+                  background={"rgba(255, 255, 255, .05)"}
+                  backdropFilter={"auto"}
+                  backdropBlur="2.5px"
+                  _focus={{
+                    outline: "none",
+                    border: "none",
+                    bgColor: "rgba(255, 255, 255, .2)",
+                  }}
+                  _placeholder={{ textColor: "rgba(255, 255, 255, .65)" }}
+                  onChange={debounceOnChange}
+                />
+                <InputRightElement>
+                  <SearchIcon color="snow" />
+                </InputRightElement>
+              </InputGroup>
+            </Stack>
+
+            <TableContainer mt={12} size="sm">
+              <Table
+                size="sm"
+                variant="simple"
+                bgColor={"rgba(255, 255, 255, .05)"}
+                backdropFilter={"auto"}
+                backdropBlur="5.5px"
+              >
+                <Thead>
                   <Tr>
-                    {Object.values(product).map((el, idx) => (
-                      // FIXME: Error in console. (Fixed)
-                      <Td
-                        maxW="20px"
+                    {cartTableKeys?.map((key, idx) => (
+                      <Th
                         key={idx}
-                        border="inset"
-                        borderColor="#666"
+                        maxW="20px"
+                        fontSize={20}
+                        textColor="#999"
+                        title="Click to sort"
+                        border="solid"
+                        borderWidth={"thin"}
+                        borderColor={"rgba(255, 255, 255, .18)"}
+                        _hover={{ cursor: "pointer" }}
+                        onClick={() => {
+                          sortData(key);
+                        }}
                       >
-                        <Text
-                          noOfLines={1}
-                          _hover={{ cursor: "pointer" }}
-                          onClick={() => handleOpen(index)}
-                        >
-                          {el}
-                        </Text>
-                      </Td>
+                        {key}
+                      </Th>
                     ))}
                   </Tr>
-                </Tbody>
-              ))}
-            </Table>
-          </TableContainer>
+                </Thead>
+                {data?.map((product, index) => (
+                  <Tbody
+                    key={index}
+                    className="border"
+                    title="Click to view more"
+                  >
+                    <Tr>
+                      {Object.values(product).map((el, idx) => (
+                        // FIXME: Error in console. (Fixed)
+                        <Td
+                          maxW="20px"
+                          key={idx}
+                          border="solid"
+                          borderWidth={"thin"}
+                          borderColor={"rgba(255, 255, 255, .18)"}
+                        >
+                          <Text
+                            noOfLines={1}
+                            _hover={{ cursor: "pointer" }}
+                            onClick={() => handleOpen(index)}
+                          >
+                            {el}
+                          </Text>
+                        </Td>
+                      ))}
+                    </Tr>
+                  </Tbody>
+                ))}
+              </Table>
+            </TableContainer>
+          </>
         )
         : (
-          <Center h={"300px"}>
-            <Text fontSize="24px">Please select user to show cart</Text>
+          <Center h={"320px"} mt="-40px">
+            <Text fontSize="24px">Please select another user to show cart</Text>
           </Center>
         )}
 

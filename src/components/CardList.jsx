@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { CardRender } from "./Card";
 import debounce from "lodash.debounce";
 import {
@@ -16,18 +16,46 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
+import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 export const CardList = (prop) => {
   const { cardId, type, page, setCurrentPage, setSearch, search, setId } = prop;
 
   const toast = useToast();
   const cardRendered = useRef(page - 1);
-  // const currentPage = useRef(page);
+  const sourceCard = useRef(0);
+  const targetCard = useRef(0);
 
   const [data, setData] = useState([{}]);
 
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
+
+  const { setProductData } = useContext(ProductCartContext);
+
+  const handleOnDragStart = (value) => sourceCard.current = value;
+  const handleOnDragOver = (value) => targetCard.current = value;
+
+  const handleSort = () => {
+    const currentList = [...data];
+    let listCard;
+
+    if (type === "users") {
+      listCard = [...users];
+    } else {
+      listCard = [...products];
+    }
+
+    const temp = listCard[sourceCard.current - 1];
+
+    listCard[sourceCard.current - 1] = listCard[targetCard.current - 1];
+    currentList[sourceCard.current - 1] = currentList[targetCard.current - 1];
+    listCard[targetCard.current - 1] = temp;
+    currentList[targetCard.current - 1] = temp;
+
+    sessionStorage.setItem(`${type}`, JSON.stringify(listCard));
+    setData(currentList);
+  };
 
   let filteredData, currentData, initialData;
 
@@ -66,6 +94,29 @@ export const CardList = (prop) => {
       }
     };
   }
+
+  const getProductData = async (endpoint) => {
+    if (type === "users") {
+      await axios.get(endpoint).then((res) => {
+        const d = res.data.carts;
+        setProductData(d);
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (type === "users") {
+        if (cardId !== "") {
+          await getProductData(
+            `https:dummyjson.com/users/${cardId}/carts`,
+          );
+        }
+      }
+    })();
+  }, []);
 
   const setIdFromCardComponent = (value) => setId(value);
 
@@ -262,6 +313,10 @@ export const CardList = (prop) => {
     initializeData();
   };
 
+  const handleDragOver = (event) => {
+    return event.target;
+  };
+
   const getFilteredItems = (query) => {
     const d = filteredData(query);
 
@@ -295,6 +350,12 @@ export const CardList = (prop) => {
             bg="btnBg"
             size="md"
             icon={<ArrowBackIcon />}
+            background={"rgba(255, 255, 255, .05)"}
+            backdropFilter={"auto"}
+            backdropBlur="5.5px"
+            border="solid"
+            borderColor={"rgba(255, 255 , 255, .18)"}
+            borderWidth={"thin"}
             onClick={handleClickPrev}
           />
           {page}
@@ -303,6 +364,12 @@ export const CardList = (prop) => {
             bg="btnBg"
             size="md"
             marginLeft="0"
+            background={"rgba(255, 255, 255, .05)"}
+            backdropFilter={"auto"}
+            backdropBlur="5.5px"
+            border="solid"
+            borderColor={"rgba(255, 255 , 255, .18)"}
+            borderWidth={"thin"}
             icon={<ArrowForwardIcon />}
             onClick={handleClickNext}
           />
@@ -315,16 +382,30 @@ export const CardList = (prop) => {
             variant="filled"
             placeholder="Name..."
             defaultValue={search}
+            background={"rgba(255, 255, 255, .05)"}
+            backdropFilter={"auto"}
+            backdropBlur="2.5px"
             onChange={debounceOnChange}
+            _focus={{
+              outline: "none",
+              border: "none",
+              bgColor: "rgba(255, 255, 255, .2)",
+            }}
+            _placeholder={{ textColor: "rgba(255, 255, 255, .65)" }}
           />
           <InputRightElement>
-            <SearchIcon color="teal" />
+            <SearchIcon color="snow" />
           </InputRightElement>
         </InputGroup>
       </Stack>
       {type === "products"
         ? (
-          <Stack h={"50vh"} overflowY="auto">
+          <Stack
+            h={"50vh"}
+            overflowY="auto"
+            borderBottom={"solid"}
+            borderBottomWidth={"unset"}
+          >
             <SimpleGrid columns={4} spacing={2}>
               {data?.map((dataRender, id) => (
                 <CardRender
@@ -339,16 +420,25 @@ export const CardList = (prop) => {
           </Stack>
         )
         : (
-          <Stack h={"85vh"} overflowY="auto">
-            <SimpleGrid columns={4} spacing={2}>
+          <Stack
+            h={"85vh"}
+            overflowY="auto"
+          >
+            <SimpleGrid
+              columns={4}
+              spacing={2}
+            >
               {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
-                  cardId={cardId}
+                  currentCard={id}
                   type="users"
                   data={dataRender}
                   dataLength={data.length}
                   setCardId={setIdFromCardComponent}
+                  onDragStart={handleOnDragStart}
+                  onDragOver={handleOnDragOver}
+                  onDragEnd={handleSort}
                 />
               ))}
             </SimpleGrid>

@@ -151,8 +151,16 @@ export default function Router() {
     }, [userPage, productPage, userSearch, productSearch, userId, productId]);
 
     return (
-      <Container w={"100vw"} maxW="4xl" centerContent>
-        <Box p={4} w={"100vw"} maxW="4xl">
+      <Container
+        w={"100vw"}
+        maxW="4xl"
+        centerContent
+      >
+        <Box
+          p={4}
+          w={"100vw"}
+          maxW="4xl"
+        >
           <ToggleThemeBtn />
           <UserIdProvider>
             <ProductIdProvider>
@@ -184,7 +192,7 @@ export default function Router() {
                           setCurrentPage={setProductPageFromCardList}
                           setSearch={setProductSearchFromCardList}
                         />
-                        <Box mt={4}>
+                        <Box mt="56px">
                           <Cart
                             search={productSearch}
                             setSearch={setProductSearchFromCardList}

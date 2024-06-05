@@ -33,7 +33,7 @@ export default function Router() {
       Number(searchParams.get("productPage")) < 1 ||
       searchParams.get("productPage") === "NaN"
       ? 0
-      : searchParams.get("productPage");
+      : Number(searchParams.get("productPage"));
 
     if (
       Number(searchParams.get("userPage")) > 5 ||

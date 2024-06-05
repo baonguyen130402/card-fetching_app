@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
-import { CardRender } from "./Card";
+import CardRender from "./Card";
 import debounce from "lodash.debounce";
 import {
   Box,
@@ -17,21 +17,23 @@ import {
 } from "@chakra-ui/react";
 import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
+import { fetchAllData, fetchProductData } from "../lib/data";
 
 export const CardList = (prop) => {
   const { cardId, type, page, setCurrentPage, setSearch, search, setId } = prop;
 
   const toast = useToast();
-  const cardRendered = useRef(page - 1);
+
   const sourceCard = useRef(0);
   const targetCard = useRef(0);
+  const cardRendered = useRef(page - 1);
 
   const [data, setData] = useState([{}]);
 
+  const { setProductData } = useContext(ProductCartContext);
+
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
-
-  const { setProductData } = useContext(ProductCartContext);
 
   const handleOnDragStart = (value) => sourceCard.current = value;
   const handleOnDragOver = (value) => targetCard.current = value;
@@ -95,24 +97,12 @@ export const CardList = (prop) => {
     };
   }
 
-  const getProductData = async (endpoint) => {
-    if (type === "users") {
-      await axios.get(endpoint).then((res) => {
-        const d = res.data.carts;
-        setProductData(d);
-      }).catch((err) => {
-        console.log(err);
-      });
-    }
-  };
-
   useEffect(() => {
     (async () => {
       if (type === "users") {
         if (cardId !== "") {
-          await getProductData(
-            `https:dummyjson.com/users/${cardId}/carts`,
-          );
+          const d = await fetchProductData(cardId);
+          setProductData(d);
         }
       }
     })();
@@ -196,55 +186,27 @@ export const CardList = (prop) => {
     }
   };
 
-  const fetchAllData = async (endpoint) => {
-    const dataGetFromEndpoint = await axios.get(endpoint);
-
-    const d = [];
-
-    if (type === "users") {
-      dataGetFromEndpoint.data.users.forEach((user) => {
-        d.push({
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
-          image: user.image,
-          cart: [],
-        });
-      });
-    } else {
-      dataGetFromEndpoint.data.products.forEach((product) => {
-        d.push({
-          id: product.id,
-          name: `${product.title}`,
-          image: product.images[0],
-        });
-      });
-    }
-
-    sessionStorage.setItem(`${type}`, JSON.stringify(d));
-  };
-
   useEffect(() => {
     (async () => {
-      try {
-        let correctPage;
+      let correctPage;
 
-        if (cardId % 20 === 0) {
-          correctPage = Math.floor(cardId / 20) - 1;
-        } else {
-          correctPage = Math.floor(cardId / 20);
+      if (cardId % 20 === 0) {
+        correctPage = Math.floor(cardId / 20) - 1;
+      } else {
+        correctPage = Math.floor(cardId / 20);
+      }
+
+      correctPage = correctPage === -1 ? page : correctPage;
+
+      await getDataOnFirstRender(
+        `https://dummyjson.com/${type}?limit=20&skip=${correctPage * 20}`,
+      );
+
+      if (users === null || products === null) {
+        if (data?.length === 1) {
+          await fetchAllData("users");
+          await fetchAllData("products");
         }
-
-        correctPage = correctPage === -1 ? page : correctPage;
-
-        await getDataOnFirstRender(
-          `https://dummyjson.com/${type}?limit=20&skip=${correctPage * 20}`,
-        );
-
-        if (users === null || products === null) {
-          await fetchAllData(`https://dummyjson.com/${type}?limit=100`);
-        }
-      } catch (err) {
-        console.log(err);
       }
     })();
   }, [search, cardId, page]);
@@ -313,10 +275,6 @@ export const CardList = (prop) => {
     initializeData();
   };
 
-  const handleDragOver = (event) => {
-    return event.target;
-  };
-
   const getFilteredItems = (query) => {
     const d = filteredData(query);
 
@@ -333,6 +291,10 @@ export const CardList = (prop) => {
     setSearch(query);
     getFilteredItems(query);
   };
+
+  if (type === "users") {
+    console.log(sourceCard.current);
+  }
 
   const debounceOnChange = debounce(updateQuery, 200);
 
@@ -410,10 +372,13 @@ export const CardList = (prop) => {
               {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
-                  cardId={cardId}
                   type="products"
-                  data={dataRender}
+                  name={dataRender.name}
+                  image={dataRender.image}
                   setCardId={setIdFromCardComponent}
+                  onDragStart={handleOnDragStart}
+                  onDragOver={handleOnDragOver}
+                  onDragEnd={handleSort}
                 />
               ))}
             </SimpleGrid>
@@ -431,9 +396,9 @@ export const CardList = (prop) => {
               {data?.map((dataRender, id) => (
                 <CardRender
                   key={id}
-                  currentCard={id}
                   type="users"
-                  data={dataRender}
+                  name={dataRender.name}
+                  image={dataRender.image}
                   dataLength={data.length}
                   setCardId={setIdFromCardComponent}
                   onDragStart={handleOnDragStart}

@@ -1,17 +1,18 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
 import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
-import axios from "axios";
+import { fetchProductData } from "../lib/data.js";
 
-export const CardRender = (props) => {
+const CardRender = (props) => {
   const {
-    currentCard,
-    data,
     type,
+    name,
+    image,
+    data,
     dataLength,
     setCardId,
     onDragOver,
@@ -35,21 +36,10 @@ export const CardRender = (props) => {
   }
 
   const property = {
-    id: data.id,
-    imageUrl: data.image,
-    name: data.name,
+    id: data?.id,
   };
 
-  const getProductData = async (endpoint) => {
-    if (type === "users") {
-      await axios.get(endpoint).then((res) => {
-        const d = res.data.carts;
-        setProductData(d);
-      }).catch((err) => {
-        console.log(err);
-      });
-    }
-  };
+  console.log("re-render");
 
   useEffect(() => {
     const shouldFocusThisItem = sessionStorage.getItem(`focus-${type}-id`);
@@ -67,7 +57,7 @@ export const CardRender = (props) => {
         setShouldFocusThisUser(true);
       }
     }
-  }, [property.id]);
+  }, [data, property.id]);
 
   const handleClick = (type) => {
     sessionStorage.setItem(`focus-${type}-id`, property.id);
@@ -75,7 +65,6 @@ export const CardRender = (props) => {
     if (property !== undefined) {
       setCardId(property.id);
       setItemId(property.id);
-      console.log(property);
     }
 
     sessionStorage.removeItem("lastQuery");
@@ -83,8 +72,7 @@ export const CardRender = (props) => {
 
   return (
     <>
-      {shouldFocusThisUser && type === "users" ||
-        shouldFocusThisProduct && type === "products"
+      {shouldFocusThisUser || shouldFocusThisProduct
         ? (
           <Card
             bg="cardBgWhenActive"
@@ -96,9 +84,9 @@ export const CardRender = (props) => {
             border="solid"
             borderColor={"rgba(255, 255 , 255, .18)"}
             borderWidth={"thin"}
-            draggable
-            onDragStart={() => onDragStart(currentCard + 1)}
-            onDragOver={() => onDragOver(currentCard + 1)}
+            draggabl
+            onDragStart={() => onDragStart(property.id)}
+            onDragOver={() => onDragOver(property.id)}
             onDragEnd={onDragEnd}
             onClick={() => handleClick(props.type)}
           >
@@ -106,14 +94,14 @@ export const CardRender = (props) => {
               <Stack align="center" direction="column" spacing={2}>
                 <Avatar
                   size="lg"
-                  src={property.imageUrl}
-                  name={property.name}
+                  src={image}
+                  name={name}
                 />
                 <Text
                   align="center"
                   fontSize="md"
                 >
-                  {property.name}
+                  {name}
                 </Text>
               </Stack>
             </CardBody>
@@ -130,14 +118,13 @@ export const CardRender = (props) => {
             borderColor={"rgba(255, 255 , 255, .18)"}
             borderWidth={"thin"}
             draggable
-            onDragStart={() => onDragStart(currentCard + 1)}
-            onDragEnter={() => onDragOver(currentCard + 1)}
+            onDragStart={() => onDragStart(property.id)}
+            onDragOver={() => onDragOver(property.id)}
             onDragEnd={onDragEnd}
             onClick={async () => {
               handleClick(props.type);
-              await getProductData(
-                `https:dummyjson.com/users/${property.id}/carts`,
-              );
+              const d = await fetchProductData(property.id);
+              setProductData(d);
             }}
           >
             <CardBody>
@@ -145,15 +132,15 @@ export const CardRender = (props) => {
                 <Avatar
                   bg="light.50"
                   size="lg"
-                  src={property.imageUrl}
-                  title={property.name}
+                  src={image}
+                  title={name}
                 />
                 <Text
                   align="center"
                   fontSize="md"
                   noOfLines={2}
                 >
-                  {property.name}
+                  {name}
                 </Text>
               </Stack>
             </CardBody>
@@ -162,3 +149,5 @@ export const CardRender = (props) => {
     </>
   );
 };
+
+export default memo(CardRender);

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import CardRender from "./Card";
 import debounce from "lodash.debounce";
 import {
@@ -18,46 +18,23 @@ import {
 import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 import { fetchAllData, fetchProductData } from "../lib/data";
+import { useDragAndDrop } from "@formkit/drag-and-drop/react";
 
 export const CardList = (prop) => {
   const { cardId, type, page, setCurrentPage, setSearch, search, setId } = prop;
 
   const toast = useToast();
 
-  const sourceCard = useRef(0);
-  const targetCard = useRef(0);
   const cardRendered = useRef(page - 1);
 
   const [data, setData] = useState([{}]);
+
+  const [parent, cards, setCards] = useDragAndDrop(data);
 
   const { setProductData } = useContext(ProductCartContext);
 
   const users = JSON.parse(sessionStorage.getItem("users"));
   const products = JSON.parse(sessionStorage.getItem("products"));
-
-  const handleOnDragStart = (value) => sourceCard.current = value;
-  const handleOnDragOver = (value) => targetCard.current = value;
-
-  const handleSort = () => {
-    const currentList = [...data];
-    let listCard;
-
-    if (type === "users") {
-      listCard = [...users];
-    } else {
-      listCard = [...products];
-    }
-
-    const temp = listCard[sourceCard.current - 1];
-
-    listCard[sourceCard.current - 1] = listCard[targetCard.current - 1];
-    currentList[sourceCard.current - 1] = currentList[targetCard.current - 1];
-    listCard[targetCard.current - 1] = temp;
-    currentList[targetCard.current - 1] = temp;
-
-    sessionStorage.setItem(`${type}`, JSON.stringify(listCard));
-    setData(currentList);
-  };
 
   let filteredData, currentData, initialData;
 
@@ -71,6 +48,12 @@ export const CardList = (prop) => {
     initialData = () => {
       if (users !== null) {
         setData(
+          users?.slice(
+            cardRendered.current,
+            cardRendered.current + 20,
+          ),
+        );
+        setCards(
           users?.slice(
             cardRendered.current,
             cardRendered.current + 20,
@@ -93,6 +76,12 @@ export const CardList = (prop) => {
             cardRendered.current + 20,
           ),
         );
+        setCards(
+          products?.slice(
+            cardRendered.current,
+            cardRendered.current + 20,
+          ),
+        );
       }
     };
   }
@@ -108,7 +97,7 @@ export const CardList = (prop) => {
     })();
   }, []);
 
-  const setIdFromCardComponent = (value) => setId(value);
+  const setIdFromCardComponent = useCallback((value) => setId(value), []);
 
   const initializeData = () => initialData();
 
@@ -162,6 +151,7 @@ export const CardList = (prop) => {
         }
       }
       setData(d);
+      setCards(d);
       cardRendered.current = 20 * (page - 1);
     } else {
       cardRendered.current = 20 * (page - 1);
@@ -183,6 +173,7 @@ export const CardList = (prop) => {
       }
 
       setData(dataRender);
+      setCards(dataRender);
     }
   };
 
@@ -196,7 +187,7 @@ export const CardList = (prop) => {
         correctPage = Math.floor(cardId / 20);
       }
 
-      correctPage = correctPage === -1 ? page : correctPage;
+      correctPage = correctPage === -1 ? page - 1 : correctPage;
 
       await getDataOnFirstRender(
         `https://dummyjson.com/${type}?limit=20&skip=${correctPage * 20}`,
@@ -221,8 +212,20 @@ export const CardList = (prop) => {
           cardRendered.current + 20,
         ),
       );
+      setCards(
+        users?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
     } else {
       setData(
+        products?.slice(
+          cardRendered.current,
+          cardRendered.current + 20,
+        ),
+      );
+      setCards(
         products?.slice(
           cardRendered.current,
           cardRendered.current + 20,
@@ -280,8 +283,10 @@ export const CardList = (prop) => {
 
     if (query?.length === 0) {
       setData(currentData);
+      setCards(currentData);
     } else {
       setData(d);
+      setCards(d);
     }
   };
 
@@ -291,10 +296,6 @@ export const CardList = (prop) => {
     setSearch(query);
     getFilteredItems(query);
   };
-
-  if (type === "users") {
-    console.log(sourceCard.current);
-  }
 
   const debounceOnChange = debounce(updateQuery, 200);
 
@@ -368,17 +369,18 @@ export const CardList = (prop) => {
             borderBottom={"solid"}
             borderBottomWidth={"unset"}
           >
-            <SimpleGrid columns={4} spacing={2}>
-              {data?.map((dataRender, id) => (
+            <SimpleGrid
+              columns={4}
+              spacing={2}
+            >
+              {data?.map((product, id) => (
                 <CardRender
-                  key={id}
+                  id={id}
+                  key={product.id}
                   type="products"
-                  name={dataRender.name}
-                  image={dataRender.image}
+                  name={product.name}
+                  image={product.image}
                   setCardId={setIdFromCardComponent}
-                  onDragStart={handleOnDragStart}
-                  onDragOver={handleOnDragOver}
-                  onDragEnd={handleSort}
                 />
               ))}
             </SimpleGrid>
@@ -392,18 +394,18 @@ export const CardList = (prop) => {
             <SimpleGrid
               columns={4}
               spacing={2}
+              ref={parent}
             >
-              {data?.map((dataRender, id) => (
+              {cards?.map((card, id) => (
                 <CardRender
-                  key={id}
+                  id={id}
+                  key={card.id}
                   type="users"
-                  name={dataRender.name}
-                  image={dataRender.image}
-                  dataLength={data.length}
+                  name={card.name}
+                  image={card.image}
+                  dataLabel={card}
+                  dataLength={card.length}
                   setCardId={setIdFromCardComponent}
-                  onDragStart={handleOnDragStart}
-                  onDragOver={handleOnDragOver}
-                  onDragEnd={handleSort}
                 />
               ))}
             </SimpleGrid>

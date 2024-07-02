@@ -1,23 +1,23 @@
 import { memo, useContext, useEffect, useState } from "react";
 
+import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
+
 import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
 import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
-import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 import { fetchProductData } from "../lib/data.js";
 
 const CardRender = (props) => {
   const {
+    id,
+    key,
     type,
     name,
     image,
-    data,
+    dataLabel,
     dataLength,
     setCardId,
-    onDragOver,
-    onDragStart,
-    onDragEnd,
   } = props;
 
   const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
@@ -35,37 +35,36 @@ const CardRender = (props) => {
     setItemId = (value) => setProductId(value);
   }
 
-  const property = {
-    id: data?.id,
-  };
-
-  console.log("re-render");
-
-  useEffect(() => {
+  const getUserIdFocusing = (id) => {
     const shouldFocusThisItem = sessionStorage.getItem(`focus-${type}-id`);
 
     if (type === "products") {
       setShouldFocusThisProduct(
-        property.id === JSON.parse(shouldFocusThisItem),
+        id === JSON.parse(shouldFocusThisItem),
       );
     } else {
       if (dataLength !== 1) {
         setShouldFocusThisUser(
-          property.id === JSON.parse(shouldFocusThisItem),
+          id === JSON.parse(shouldFocusThisItem),
         );
       } else {
         setShouldFocusThisUser(true);
       }
     }
-  }, [data, property.id]);
+  };
 
-  const handleClick = (type) => {
-    sessionStorage.setItem(`focus-${type}-id`, property.id);
+  useEffect(() => {
+    getUserIdFocusing(id);
+  }, [{ id, name, image }]);
 
-    if (property !== undefined) {
-      setCardId(property.id);
-      setItemId(property.id);
-    }
+  const handleClick = async () => {
+    sessionStorage.setItem(`focus-${type}-id`, id);
+
+    setCardId(id);
+    setItemId(id);
+
+    const d = await fetchProductData(id);
+    setProductData(d);
 
     sessionStorage.removeItem("lastQuery");
   };
@@ -75,6 +74,8 @@ const CardRender = (props) => {
       {shouldFocusThisUser || shouldFocusThisProduct
         ? (
           <Card
+            key={key}
+            data-label={dataLabel}
             bg="cardBgWhenActive"
             boxShadow="lg"
             rounded="md"
@@ -84,11 +85,10 @@ const CardRender = (props) => {
             border="solid"
             borderColor={"rgba(255, 255 , 255, .18)"}
             borderWidth={"thin"}
-            draggabl
-            onDragStart={() => onDragStart(property.id)}
-            onDragOver={() => onDragOver(property.id)}
-            onDragEnd={onDragEnd}
-            onClick={() => handleClick(props.type)}
+            onClick={async () => {
+              await handleClick();
+              getUserIdFocusing(id);
+            }}
           >
             <CardBody>
               <Stack align="center" direction="column" spacing={2}>
@@ -109,6 +109,7 @@ const CardRender = (props) => {
         )
         : (
           <Card
+            key={key}
             bg="cardBg"
             rounded="md"
             background={"rgba(255, 255, 255, .05)"}
@@ -117,14 +118,9 @@ const CardRender = (props) => {
             border="solid"
             borderColor={"rgba(255, 255 , 255, .18)"}
             borderWidth={"thin"}
-            draggable
-            onDragStart={() => onDragStart(property.id)}
-            onDragOver={() => onDragOver(property.id)}
-            onDragEnd={onDragEnd}
             onClick={async () => {
-              handleClick(props.type);
-              const d = await fetchProductData(property.id);
-              setProductData(d);
+              await handleClick();
+              getUserIdFocusing(id);
             }}
           >
             <CardBody>

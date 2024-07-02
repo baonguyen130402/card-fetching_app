@@ -35,15 +35,17 @@ export const fetchAllData = async (type) => {
 };
 
 export const fetchProductData = async (cardId) => {
+  let d;
+  
   try {
     const dataGetFromEndpoint = await axios.get(
       `https:dummyjson.com/users/${cardId}/carts`,
     );
-    const d = dataGetFromEndpoint.data.carts;
-
-    return d;
+    d = dataGetFromEndpoint.data.carts;
   } catch (error) {
     console.error("Fetch Error:", error);
     throw new Error(`Failed to fetch card ${cardId} data.`);
   }
+
+  return d;
 };

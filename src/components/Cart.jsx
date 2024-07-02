@@ -48,7 +48,7 @@ export const Cart = (props) => {
   const lastQuery = sessionStorage.getItem("lastQuery");
 
   const users = JSON.parse(sessionStorage.getItem("users"));
-  const currentIdUser = JSON.parse(sessionStorage.getItem("focus-users-id"));
+  // const currentIdUser = JSON.parse(sessionStorage.getItem("focus-users-id"));
 
   const userId = searchParams.get("userId");
 

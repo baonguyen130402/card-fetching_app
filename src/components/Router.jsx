@@ -18,6 +18,7 @@ import DefaultValueProvider from "../lib/contexts/DefaultValueContext.tsx";
 
 import { Box, Container, Grid, GridItem } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { DragDropContext } from "react-beautiful-dnd";
 
 export default function Router() {
   const Layout = () => {
@@ -131,6 +132,18 @@ export default function Router() {
       }
     };
 
+    const onDragStart = (result) => {
+      const { source, destination } = result;
+    };
+
+    const onDragUpdate = (result) => {
+      const { source, destination } = result;
+    };
+
+    const onDragEnd = (result) => {
+      const { source, destination } = result;
+    };
+
     useEffect(() => {
       findPageHasSelectedUserCard();
     }, []);
@@ -167,39 +180,45 @@ export default function Router() {
               <ProductProvider>
                 <ProductCartProvider>
                   <DefaultValueProvider>
-                    <Grid
-                      gap={8}
-                      templateColumns="repeat(2, minmax(200px, 1fr))"
+                    <DragDropContext
+                      onDragStart={onDragStart}
+                      onDragUpdate={onDragUpdate}
+                      onDragEnd={onDragEnd}
                     >
-                      <GridItem rowSpan={2}>
-                        <CardList
-                          type="users"
-                          cardId={userId}
-                          page={userPage}
-                          search={userSearch}
-                          setId={setUserIdFromChildComponent}
-                          setSearch={setUserSearchFromCardList}
-                          setCurrentPage={setUserPageFromCardList}
-                        />
-                      </GridItem>
-                      <GridItem rowSpan={1}>
-                        <CardList
-                          type="products"
-                          cardId={productId}
-                          page={productPage}
-                          search={productSearch}
-                          setId={setProductIdFromChildComponent}
-                          setCurrentPage={setProductPageFromCardList}
-                          setSearch={setProductSearchFromCardList}
-                        />
-                        <Box mt="56px">
-                          <Cart
+                      <Grid
+                        gap={8}
+                        templateColumns="repeat(2, minmax(200px, 1fr))"
+                      >
+                        <GridItem rowSpan={2}>
+                          <CardList
+                            type="users"
+                            cardId={userId}
+                            page={userPage}
+                            search={userSearch}
+                            setId={setUserIdFromChildComponent}
+                            setSearch={setUserSearchFromCardList}
+                            setCurrentPage={setUserPageFromCardList}
+                          />
+                        </GridItem>
+                        <GridItem rowSpan={1}>
+                          <CardList
+                            type="products"
+                            cardId={productId}
+                            page={productPage}
                             search={productSearch}
+                            setId={setProductIdFromChildComponent}
+                            setCurrentPage={setProductPageFromCardList}
                             setSearch={setProductSearchFromCardList}
                           />
-                        </Box>
-                      </GridItem>
-                    </Grid>
+                          <Box mt="56px">
+                            <Cart
+                              search={productSearch}
+                              setSearch={setProductSearchFromCardList}
+                            />
+                          </Box>
+                        </GridItem>
+                      </Grid>
+                    </DragDropContext>
                   </DefaultValueProvider>
                 </ProductCartProvider>
               </ProductProvider>

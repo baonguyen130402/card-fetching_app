@@ -19,6 +19,7 @@ import { ArrowBackIcon, ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
 import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 import { fetchAllData, fetchProductData } from "../lib/data";
 import { useDragAndDrop } from "@formkit/drag-and-drop/react";
+import { animations } from "@formkit/drag-and-drop";
 
 export const CardList = (prop) => {
   const { cardId, type, page, setCurrentPage, setSearch, search, setId } = prop;
@@ -29,7 +30,7 @@ export const CardList = (prop) => {
 
   const [data, setData] = useState([{}]);
 
-  const [parent, cards, setCards] = useDragAndDrop(data);
+  const [parent, cards, setCards] = useDragAndDrop(data, {plugins: [animations()]});
 
   const { setProductData } = useContext(ProductCartContext);
 

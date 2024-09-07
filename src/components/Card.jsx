@@ -1,83 +1,149 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 
-import { UserIdContext } from "../lib/contexts/user-id-context";
-import ProductCartProvider, {
-  ProductCartContext,
-} from "../lib/contexts/ProductCartContext";
+import { Avatar, Card, CardBody, Stack, Text } from "@chakra-ui/react";
 
-import axios from "axios";
-import { ProductCard } from "./ProductCard";
+import { UserIdContext } from "../lib/contexts/UserIdContext.tsx";
+import { ProductIdContext } from "../lib/contexts/ProductIdContext.tsx";
+import { ProductCartContext } from "../lib/contexts/ProductCartContext";
 
-export const Card = (props) => {
-  const { id, name, image, dataCart } = props;
-  const UserId = useRef();
-  const [shouldFocusThisCard, setShouldFocusThisCard] = useState(false);
-  const { userId, setUserId } = useContext(UserIdContext);
-  const { productData, setProductData } = useContext(ProductCartContext);
+import { fetchProductData } from "../lib/data.js";
 
-  const handleClick = () => {
-    localStorage.setItem("focus-user-id", id);
-    setUserId(id);
-    UserId.current = id;
-  };
+const CardRender = (props) => {
+  const {
+    id,
+    key,
+    type,
+    name,
+    image,
+    dataLabel,
+    dataLength,
+    setCardId,
+  } = props;
 
-  const getProductData = (userId) => {
-    let products;
+  const [shouldFocusThisUser, setShouldFocusThisUser] = useState(false);
+  const [shouldFocusThisProduct, setShouldFocusThisProduct] = useState(false);
 
-    if (dataCart[userId] !== undefined) {
-      products = dataCart[userId];
-    }
+  const { setProductData } = useContext(ProductCartContext);
 
-    if (products !== undefined) {
-      setProductData(products);
+  let setItemId;
+
+  if (type === "users") {
+    const { setUserId } = useContext(UserIdContext);
+    setItemId = (value) => setUserId(value);
+  } else {
+    const { setProductId } = useContext(ProductIdContext);
+    setItemId = (value) => setProductId(value);
+  }
+
+  const getUserIdFocusing = (id) => {
+    const shouldFocusThisItem = sessionStorage.getItem(`focus-${type}-id`);
+
+    if (type === "products") {
+      setShouldFocusThisProduct(
+        id === JSON.parse(shouldFocusThisItem),
+      );
+    } else {
+      if (dataLength !== 1) {
+        setShouldFocusThisUser(
+          id === JSON.parse(shouldFocusThisItem),
+        );
+      } else {
+        setShouldFocusThisUser(true);
+      }
     }
   };
 
   useEffect(() => {
-    const shouldFocusUserId = localStorage.getItem("focus-user-id");
-    if (id !== undefined) {
-      setShouldFocusThisCard(id === JSON.parse(shouldFocusUserId));
-    }
-    if (userId !== undefined) {
-      getProductData(userId);
-    }
-  }, [userId]);
+    getUserIdFocusing(id);
+  }, [{ id, name, image }]);
+
+  const handleClick = async () => {
+    sessionStorage.setItem(`focus-${type}-id`, id);
+
+    setCardId(id);
+    setItemId(id);
+
+    const d = await fetchProductData(id);
+    setProductData(d);
+
+    sessionStorage.removeItem("lastQuery");
+  };
 
   return (
     <>
-      {shouldFocusThisCard
+      {shouldFocusThisUser || shouldFocusThisProduct
         ? (
-          <a
-            onClick={handleClick}
-            className="flex flex-col max-w-sm p-2 mb-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-blue-700 dark:hover:bg-gray-700"
+          <Card
+            key={key}
+            data-label={dataLabel}
+            bg="cardBgWhenActive"
+            boxShadow="lg"
+            rounded="md"
+            background={"rgba(255, 255, 255, .25)"}
+            backdropFilter={"auto"}
+            backdropBlur="5.5px"
+            border="solid"
+            borderColor={"rgba(255, 255 , 255, .18)"}
+            borderWidth={"thin"}
+            onClick={async () => {
+              await handleClick();
+              getUserIdFocusing(id);
+            }}
           >
-            <img
-              className="w-32 mb-2 bg-transparent rounded-lg align-center mx-auto"
-              src={image}
-            />
-            <p className="font-normal text-gray-700 dark:text-gray-400">
-              {name}
-            </p>
-          </a>
+            <CardBody>
+              <Stack align="center" direction="column" spacing={2}>
+                <Avatar
+                  size="lg"
+                  src={image}
+                  name={name}
+                />
+                <Text
+                  align="center"
+                  fontSize="md"
+                >
+                  {name}
+                </Text>
+              </Stack>
+            </CardBody>
+          </Card>
         )
         : (
-          <a
-            onClick={() => {
-              handleClick();
-              getProductData();
+          <Card
+            key={key}
+            bg="cardBg"
+            rounded="md"
+            background={"rgba(255, 255, 255, .05)"}
+            backdropFilter={"auto"}
+            backdropBlur="5.5px"
+            border="solid"
+            borderColor={"rgba(255, 255 , 255, .18)"}
+            borderWidth={"thin"}
+            onClick={async () => {
+              await handleClick();
+              getUserIdFocusing(id);
             }}
-            href="#"
-            className="flex flex-col max-w-sm p-2 mb-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
           >
-            <img
-              className="w-32 mb-2 bg-transparent rounded-lg align-center mx-auto"
-              src={image}
-            />
-            <p className="font-normal text-gray-700 dark:text-gray-400">
-              {name}
-            </p>
-          </a>
+            <CardBody>
+              <Stack align="center" direction="column" spacing={2}>
+                <Avatar
+                  bg="light.50"
+                  size="lg"
+                  src={image}
+                  title={name}
+                />
+                <Text
+                  align="center"
+                  fontSize="md"
+                  noOfLines={2}
+                >
+                  {name}
+                </Text>
+              </Stack>
+            </CardBody>
+          </Card>
         )}
     </>
   );
 };
+
+export default memo(CardRender);

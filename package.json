@@ -10,10 +10,28 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/color-mode": "^2.2.0",
+    "@chakra-ui/icons": "^2.1.1",
+    "@chakra-ui/react": "^2.8.2",
+    "@emotion/styled": "^11.11.0",
+    "@formkit/drag-and-drop": "^0.1.4",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/sortablejs": "^1.15.8",
+    "abort-controller": "^3.0.0",
     "autoprefixer": "^10.4.16",
     "axios": "^1.5.1",
+    "framer-motion": "^10.16.16",
+    "lodash.debounce": "^4.0.8",
+    "primereact": "^10.2.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-beautiful-dnd": "^13.1.1",
+    "react-data-table-component": "^7.5.4",
+    "react-dom": "^18.2.0",
+    "react-gesture-responder": "^2.1.0",
+    "react-grid-dnd": "^2.1.2",
+    "react-sortablejs": "^6.1.4",
+    "sortablejs": "^1.15.2",
+    "styled-components": "^5.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
